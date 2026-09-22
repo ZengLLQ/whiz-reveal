@@ -23,6 +23,7 @@ function NumberGrid({ numbers, count, total, cycling, seed, large = false, scale
     '--number-font': `${(large ? 108 : 66) * scale}px`,
     '--grid-gap': `${(large ? 22 : 12) * scale}px`,
     '--grid-max': `${Math.min(count, large ? 5 : 4) * (large ? 254 : 170) * scale}px`,
+    '--history-columns': `${Math.min(count, large ? 5 : 4)}`,
     '--digits': digits,
   } as CSSProperties;
 
@@ -47,6 +48,14 @@ function NumberGrid({ numbers, count, total, cycling, seed, large = false, scale
   );
 }
 
+function drawOrdinal(id: number) {
+  const lastTwoDigits = id % 100;
+  const suffix = lastTwoDigits >= 11 && lastTwoDigits <= 13
+    ? 'th'
+    : ({ 1: 'st', 2: 'nd', 3: 'rd' } as Record<number, string>)[id % 10] ?? 'th';
+  return `${id}${suffix}`;
+}
+
 export function RevealCanvas({ snapshot, presentation = false }: { snapshot: Snapshot; presentation?: boolean }) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const { activeDraw, config, history } = snapshot;
@@ -69,8 +78,14 @@ export function RevealCanvas({ snapshot, presentation = false }: { snapshot: Sna
       tabIndex={0} aria-label={view === 'history' ? 'Full draw history' : 'Current draw'}>
       {view === 'history' && (history.length > 0) ? (
         <div className="history-rows">
-          {activeDraw && <div className="history-draw" key={activeDraw.draw.id}>{renderDraw(activeDraw.draw, true)}</div>}
-          {visibleHistory.map((draw) => <div className="history-draw" key={draw.id}>{renderDraw(draw)}</div>)}
+          {activeDraw && <div className="history-draw" key={activeDraw.draw.id}>
+            <div className="history-draw-heading"><span>{drawOrdinal(activeDraw.draw.id)} Draw</span><span className="history-draw-state">Drawing</span></div>
+            {renderDraw(activeDraw.draw, true)}
+          </div>}
+          {visibleHistory.map((draw) => <div className="history-draw" key={draw.id}>
+            <div className="history-draw-heading"><span>{drawOrdinal(draw.id)} Draw</span></div>
+            {renderDraw(draw)}
+          </div>)}
         </div>
       ) : (
         <div className="current-numbers">

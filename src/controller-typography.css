@@ -20,6 +20,7 @@
 .controller-shell .presentation-tip p,
 .controller-shell .preview-baseline,
 .controller-shell .history-entry-meta,
+.controller-shell .history-draw-heading,
 .controller-shell .text-button { font-size: var(--controller-text-sm); }
 .controller-shell .secondary-button,
 .controller-shell .primary-button,
