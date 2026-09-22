@@ -2,6 +2,8 @@
 
 **WhizReveal by JAYCEE 曾令强** is a Windows raffle application built with Tauri 2, Rust, React, TypeScript, Tailwind CSS 4, and Framer Motion. A controller manages the pool and session; a separate fullscreen display presents the numbers to an audience.
 
+The [trilingual user manual](output/pdf/WhizReveal-User-Manual-EN-ID-ZH.pdf) explains the workflow in English, Bahasa Indonesia, and Simplified Chinese.
+
 Local release packages are generated in `release/`: `WhizReveal.exe`, a portable ZIP, and the NSIS setup executable. Generated packages are excluded from the source repository. The app needs WebView2, but does not need Node.js or Rust installed. See [verification results](docs/verification.md) for the checks performed.
 
 ## Run from source on Windows

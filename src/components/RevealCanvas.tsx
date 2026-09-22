@@ -23,7 +23,7 @@ function NumberGrid({ numbers, count, total, cycling, seed, large = false, scale
     '--number-font': `${(large ? 108 : 66) * scale}px`,
     '--grid-gap': `${(large ? 22 : 12) * scale}px`,
     '--grid-max': `${Math.min(count, large ? 5 : 4) * (large ? 254 : 170) * scale}px`,
-    '--history-columns': `${Math.min(count, large ? 5 : 4)}`,
+    '--grid-columns': `${Math.min(count, large ? 5 : 4)}`,
     '--digits': digits,
   } as CSSProperties;
 

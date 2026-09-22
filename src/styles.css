@@ -101,8 +101,8 @@ kbd { font-family: inherit; }
 .history-draw { display: flex; flex-direction: column; align-items: center; }
 .history-draw-heading { width: 100%; display: flex; align-items: baseline; justify-content: center; gap: 10px; margin-bottom: 17px; color: #E7EEF5; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-align: center; }
 .history-draw-state { color: #5D6F82; font-size: 9px; font-weight: 400; letter-spacing: 0.08em; text-transform: uppercase; }
-.history-canvas .history-draw .number-grid { display: flex; flex-wrap: wrap; justify-content: center; align-content: flex-start; }
-.history-canvas .history-draw .number-tile { flex: 0 0 calc((100% - ((var(--history-columns) - 1) * var(--grid-gap))) / var(--history-columns)); width: auto; }
+.reveal-canvas .number-grid { display: flex; flex-wrap: wrap; justify-content: center; align-content: flex-start; }
+.reveal-canvas .number-tile { flex: 0 0 calc((100% - ((var(--grid-columns) - 1) * var(--grid-gap))) / var(--grid-columns)); width: auto; }
 .history-canvas .number-grid { --tile-height: 90px !important; --number-font: 42px !important; }
 .session-stats { display: grid; grid-template-columns: repeat(3, 1fr); padding: 25px 0; }
 .session-stats > div { display: flex; flex-direction: column; align-items: center; gap: 5px; }
