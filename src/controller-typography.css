@@ -1,0 +1,94 @@
+/* Controller typography is independent of the presentation scale and number canvas. */
+.controller-shell {
+  --controller-text-2xs: calc(9px * var(--controller-text-scale, 1));
+  --controller-text-xs: calc(10px * var(--controller-text-scale, 1));
+  --controller-text-sm: calc(11px * var(--controller-text-scale, 1));
+  --controller-text-md: calc(12px * var(--controller-text-scale, 1));
+  --controller-text-base: calc(13px * var(--controller-text-scale, 1));
+  --controller-text-lg: calc(14px * var(--controller-text-scale, 1));
+  font-size: var(--controller-text-base);
+}
+
+.controller-shell .brand-name { font-size: calc(20px * var(--controller-text-scale, 1)); }
+.controller-shell .brand-credit,
+.controller-shell .preview-tag,
+.controller-shell .section-label,
+.controller-shell .input-shell > span,
+.controller-shell .field-hint,
+.controller-shell .segmented button,
+.controller-shell .scale-label output,
+.controller-shell .presentation-tip p,
+.controller-shell .preview-baseline,
+.controller-shell .history-entry-meta,
+.controller-shell .text-button { font-size: var(--controller-text-sm); }
+.controller-shell .secondary-button,
+.controller-shell .primary-button,
+.controller-shell .field-label,
+.controller-shell .history-chips span,
+.controller-shell .empty-history p,
+.controller-shell .reset-dialog p { font-size: var(--controller-text-base); }
+.controller-shell .apply-button,
+.controller-shell .field-error,
+.controller-shell .scale-label,
+.controller-shell .preview-heading { font-size: var(--controller-text-md); }
+.controller-shell .scale-endpoints,
+.controller-shell .presentation-tip kbd,
+.controller-shell .preview-indicator,
+.controller-shell .stat-label,
+.controller-shell .draw-note,
+.controller-shell .history-heading .section-label,
+.controller-shell .count-badge,
+.controller-shell .history-entry-meta time,
+.controller-shell .empty-history > span,
+.controller-shell .history-bottom,
+.controller-shell .footer-note { font-size: var(--controller-text-xs); }
+.controller-shell .draw-note kbd,
+.controller-shell .latest-label { font-size: var(--controller-text-2xs); }
+.controller-shell .input-shell input { font-size: calc(22px * var(--controller-text-scale, 1)); }
+.controller-shell .baseline-mark { font-size: calc(15px * var(--controller-text-scale, 1)); }
+.controller-shell .stat-value { font-size: calc(23px * var(--controller-text-scale, 1)); }
+.controller-shell .draw-button { font-size: var(--controller-text-lg); }
+.controller-shell .reset-dialog h2 { font-size: calc(24px * var(--controller-text-scale, 1)); }
+
+.controller-shell .controller-text-control { display: flex; align-items: center; gap: 10px; }
+.controller-shell .controller-text-label { color: #5D6F82; font-size: var(--controller-text-sm); white-space: nowrap; }
+.controller-shell .controller-text-buttons { display: flex; align-items: stretch; padding: 3px; border: 1px solid #2A333D; border-radius: 9px; background: #0B0D10; }
+.controller-shell .controller-text-buttons button { min-height: 34px; border: 0; border-radius: 5px; color: #E7EEF5; background: #0B0D10; }
+.controller-shell .controller-text-buttons button:hover:not(:disabled) { background: #2A333D; }
+.controller-shell .controller-text-buttons button:disabled { color: #5D6F82; }
+.controller-shell .controller-text-step { min-width: 36px; padding: 6px 9px; font-size: var(--controller-text-lg); font-weight: 500; }
+.controller-shell .controller-text-sign { font-size: 0.8em; margin-left: 1px; }
+.controller-shell .controller-text-reset { min-width: 58px; padding: 6px 8px; font-size: var(--controller-text-md); font-variant-numeric: tabular-nums; }
+
+/* Text grows without scaling layout, pointer targets, or the rendered draw numbers. */
+.controller-shell .app-topbar { flex-wrap: wrap; padding-top: 20px; padding-bottom: 20px; }
+.controller-shell .branding { flex-shrink: 0; }
+.controller-shell .topbar-actions { flex-wrap: wrap; justify-content: flex-end; min-width: 0; margin-left: auto; }
+.controller-shell .section-label { line-height: 1.6; }
+.controller-shell .section-label svg { flex-shrink: 0; }
+.controller-shell .input-shell { flex-wrap: wrap; }
+.controller-shell .input-shell input { flex: 1 1 105px; }
+.controller-shell .input-shell > span { flex: 0 1 auto; }
+.controller-shell .segmented button { white-space: normal; overflow-wrap: normal; line-height: 1.45; }
+.controller-shell .toggle-row > div { min-width: 0; }
+.controller-shell .history-heading { align-items: flex-start; }
+.controller-shell .count-badge { flex-shrink: 0; }
+.controller-shell .history-entry-meta { flex-wrap: wrap; line-height: 1.5; }
+.controller-shell .history-entry-meta > span { display: flex; align-items: baseline; flex-wrap: wrap; }
+.controller-shell .session-stats > div { min-width: 0; padding: 0 6px; text-align: center; }
+.controller-shell .stat-value { overflow-wrap: anywhere; }
+.controller-shell .preview-heading { flex-wrap: wrap; }
+.controller-shell .preview-baseline { line-height: 1.6; }
+.controller-shell .baseline-mark { flex-shrink: 0; }
+.controller-shell .draw-button { gap: 12px; line-height: 1.4; text-align: left; }
+.controller-shell .draw-note { flex-wrap: wrap; line-height: 1.6; }
+.controller-shell .app-footer { min-height: 55px; height: auto; padding: 10px 0; gap: 12px; flex-wrap: wrap; }
+.controller-shell .reset-dialog { max-height: calc(100dvh - 32px); overflow-y: auto; }
+.controller-shell .dialog-actions { flex-wrap: wrap; }
+.controller-shell .dialog-actions button { flex: 1 1 130px; }
+
+@media (max-width: 620px) {
+  .controller-shell .app-topbar { gap: 18px; }
+  .controller-shell .topbar-actions { width: 100%; justify-content: space-between; gap: 12px; }
+  .controller-shell .controller-text-control { gap: 8px; }
+}
