@@ -67,3 +67,10 @@ The setup executable now uses the existing WhizReveal W app icon. The NSIS insta
 - The application and setup report version 1.1.1. The portable ZIP's executable matches the built application by SHA-256.
 
 Verification read executable resources without running the installer. Installation and the generated uninstaller were not exercised, and the existing installed application and saved session were left unchanged. Application behavior did not change in this packaging update; the earlier test results remain historical results rather than new test runs.
+
+## History display update, 1.1.2
+
+The Full History display now labels each section with its ordinal draw name, such as `1st Draw`, `2nd Draw`, and `3rd Draw`. Number tiles are centered within each draw section, including incomplete rows, and an active section also shows a small `Drawing` state label.
+
+- TypeScript strict checking, 44 frontend tests, Vite production build, and the browser visual check passed.
+- The source update is committed and pushed to `main` before the 1.1.2 Windows package build.
