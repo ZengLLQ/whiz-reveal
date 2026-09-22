@@ -77,6 +77,8 @@ src-tauri\target\release\bundle\nsis\WhizReveal_<version>_x64-setup.exe
 
 The installer version follows `src-tauri/tauri.conf.json`, and its suffix follows the build architecture. The installed application does not require Node.js or Rust; it uses the Windows WebView2 Runtime. Packaging details are documented in [Tauri's Windows installer guide](https://v2.tauri.app/distribute/windows-installer/).
 
+The setup executable and uninstaller use the same WhizReveal W icon as the application. These are configured explicitly with `bundle.windows.nsis.installerIcon` and `uninstallerIcon`, both pointing to `src-tauri/icons/icon.ico` relative to the repository root.
+
 ## Browser preview
 
 ```powershell

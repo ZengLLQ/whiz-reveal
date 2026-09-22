@@ -56,3 +56,14 @@ Remaining device acceptance checks (not claimed as tested for 1.1.0):
 - Current Draw and Full History retain vertical scrolling without horizontal overflow at large number counts and display scales.
 
 The bullets above are interface acceptance checks to perform for the update, not additional recorded test results.
+
+## Windows installer icon, 1.1.1
+
+The setup executable now uses the existing WhizReveal W app icon. The NSIS installer and uninstaller icon paths are configured explicitly.
+
+- TypeScript strict checking, the Vite production build, and the native Windows/NSIS release build passed.
+- The generated NSIS script references `icons/icon.ico` for both `MUI_ICON` and `MUI_UNICON`.
+- All six icon images embedded in the setup executable (16, 24, 32, 48, 64, and 256 px, 32-bit) match the source ICO payloads byte-for-byte by SHA-256. The earlier 1.1.0 setup contained the default NSIS icon instead.
+- The application and setup report version 1.1.1. The portable ZIP's executable matches the built application by SHA-256.
+
+Verification read executable resources without running the installer. Installation and the generated uninstaller were not exercised, and the existing installed application and saved session were left unchanged. Application behavior did not change in this packaging update; the earlier test results remain historical results rather than new test runs.
