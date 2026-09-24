@@ -14,10 +14,13 @@ import type { Config, Presentation, Snapshot } from './types';
 
 export const isNative = typeof window !== 'undefined' && isTauri();
 const STATE_EVENT = 'whizreveal://state';
+const DISPLAY_EVENT = 'whizreveal://display';
 const STORAGE_KEY = 'whizreveal.preview.v1';
 const CHANNEL_NAME = 'whizreveal.preview.sync.v1';
 const LOCK_NAME = 'whizreveal.preview.write.v1';
 type StateListener = (snapshot: Snapshot) => void;
+export type DisplayStatus = { open: boolean; revision: number };
+type DisplayListener = (status: DisplayStatus) => void;
 
 const previewListeners = new Set<StateListener>();
 let previewChannel: BroadcastChannel | null = null;
@@ -25,6 +28,31 @@ let previewStarted = false;
 let finishTimer: ReturnType<typeof setTimeout> | undefined;
 let localWriteQueue: Promise<unknown> = Promise.resolve();
 let displayWindow: Window | null = null;
+let displayStatus: DisplayStatus = { open: false, revision: 0 };
+const displayListeners = new Set<DisplayListener>();
+let displayMonitor: ReturnType<typeof setInterval> | undefined;
+let displayToggle: Promise<DisplayStatus> | undefined;
+
+function refreshPreviewDisplay(): DisplayStatus {
+  const open = !!displayWindow && !displayWindow.closed;
+  if (open !== displayStatus.open) {
+    displayStatus = { open, revision: displayStatus.revision + 1 };
+    for (const listener of displayListeners) listener(displayStatus);
+  }
+  if (!open) {
+    displayWindow = null;
+    if (displayMonitor !== undefined) clearInterval(displayMonitor);
+    displayMonitor = undefined;
+  }
+  return displayStatus;
+}
+
+function monitorPreviewDisplay(): void {
+  if (displayMonitor === undefined && displayListeners.size > 0 && displayWindow) {
+    // Window.closed remains available even while the popup navigates or closes manually.
+    displayMonitor = setInterval(refreshPreviewDisplay, 250);
+  }
+}
 
 function sessionId(): string {
   return globalThis.crypto.randomUUID();
@@ -153,20 +181,64 @@ export async function resetSession(): Promise<Snapshot> {
   return withPreviewState((state) => resetPreviewSession(state, sessionId()));
 }
 
-export async function launchDisplay(): Promise<void> {
-  if (isNative) return invoke<void>('launch_display');
+export async function getDisplayStatus(): Promise<DisplayStatus> {
+  if (isNative) return invoke<DisplayStatus>('get_display_status');
+  return refreshPreviewDisplay();
+}
+
+export async function launchDisplay(): Promise<DisplayStatus> {
+  if (isNative) return invoke<DisplayStatus>('launch_display');
+  if (displayWindow && !displayWindow.closed) {
+    displayWindow.focus();
+    return refreshPreviewDisplay();
+  }
   const url = new URL(window.location.href);
   url.searchParams.set('window', 'display');
   const opened = window.open(url.toString(), 'WhizRevealDisplay', 'popup,width=1280,height=800');
   if (!opened) throw new Error('The display window was blocked. Allow pop-ups for this preview and try again.');
   displayWindow = opened;
   opened.focus();
+  const status = refreshPreviewDisplay();
+  monitorPreviewDisplay();
+  return status;
 }
 
-export async function closeDisplay(): Promise<void> {
-  if (isNative) return invoke<void>('close_display');
+export async function closeDisplay(): Promise<DisplayStatus> {
+  if (isNative) return invoke<DisplayStatus>('close_display');
   if (displayWindow && !displayWindow.closed) displayWindow.close();
-  displayWindow = null;
+  // Keep the controller busy until the popup really closes, so reopening cannot
+  // reuse a window that is still processing its close request.
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    const status = refreshPreviewDisplay();
+    if (!status.open) return status;
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  throw new Error('The display could not close. Close its window and try again.');
+}
+
+export function toggleDisplay(): Promise<DisplayStatus> {
+  // Coalesce a rapid second request while opening or closing. Starting the
+  // operation immediately preserves the browser click gesture for window.open.
+  if (displayToggle) return displayToggle;
+  const toggle = async (): Promise<DisplayStatus> => {
+    const status = isNative ? await getDisplayStatus() : refreshPreviewDisplay();
+    return status.open ? closeDisplay() : launchDisplay();
+  };
+  displayToggle = toggle().finally(() => { displayToggle = undefined; });
+  return displayToggle;
+}
+
+export async function subscribeDisplayStatus(listener: DisplayListener): Promise<() => void> {
+  if (isNative) return listen<DisplayStatus>(DISPLAY_EVENT, (event) => listener(event.payload));
+  displayListeners.add(listener);
+  monitorPreviewDisplay();
+  return () => {
+    displayListeners.delete(listener);
+    if (displayListeners.size === 0 && displayMonitor !== undefined) {
+      clearInterval(displayMonitor);
+      displayMonitor = undefined;
+    }
+  };
 }
 
 export async function subscribe(listener: StateListener): Promise<() => void> {

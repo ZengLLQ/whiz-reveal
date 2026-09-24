@@ -74,3 +74,16 @@ The Full History display now labels each section with its ordinal draw name, suc
 
 - TypeScript strict checking, 44 frontend tests, Vite production build, and the browser visual check passed.
 - The source update is committed and pushed to `main` before the 1.1.3 Windows package build.
+
+## Display toggle, guide, and Aeonik update, 1.2.0
+
+- TypeScript strict checking and the Vite production build passed. Three.js is a lazy chunk; Vite reports its bundle-size advisory (approximately 747 kB before gzip).
+- 52 frontend tests and 16 Rust tests passed. Rust formatting passed.
+- Browser launch, close, and reopen checks preserved the same draw history. Bridge tests also cover manual popup closure, blocked popups, delayed closure, and concurrent requests.
+- The controller uses the local Aeonik font family; the WebGL sculpture rendered successfully. Six-number results were centered as four tiles followed by two centered tiles, with no horizontal page overflow.
+- English, Simplified Chinese, and Indonesian guide content was inspected. Language switching, Escape focus restoration, and scrollable guide layout at 150% text were checked. Enter on a guide heading did not trigger a draw. The previous text preference was restored after testing.
+- The native Windows executable and NSIS installer built successfully and report version 1.2.0. The generated installer includes all three font resources and the install/uninstall hooks.
+- All six installer icon images match the source W icon payloads.
+- Seven isolated NSIS font-hook scenarios passed: fresh install, idempotent reinstall, upgrade retention, normal uninstall, existing user registration, existing Regular-family alias, and an existing reserved filename. Font hashes matched the supplied files; the test registry tree was removed afterwards. These checks used a unique test registry tree and workspace directory, not production font registry entries or an existing WhizReveal installation.
+
+Physical multi-monitor placement and a complete installation on a second computer have not been exercised for this release. The archived PDF and Figma screens describe earlier versions; the built-in three-language guide describes 1.2.0.

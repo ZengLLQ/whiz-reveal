@@ -13,6 +13,10 @@ export function useRaffle() {
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [displayOpen, setDisplayOpen] = useState(false);
+  const [displayBusy, setDisplayBusy] = useState(true);
+  const latestDisplay = useRef<bridge.DisplayStatus | null>(null);
+  const displayPending = useRef(false);
   const latest = useRef<Snapshot | null>(null);
   const mounted = useRef(false);
   const pendingActions = useRef(0);
@@ -23,10 +27,17 @@ export function useRaffle() {
     setSnapshot(incoming);
   }, []);
 
+  const acceptDisplay = useCallback((incoming: bridge.DisplayStatus) => {
+    if (!mounted.current || (latestDisplay.current && incoming.revision < latestDisplay.current.revision)) return;
+    latestDisplay.current = incoming;
+    setDisplayOpen(incoming.open);
+  }, []);
+
   useEffect(() => {
     mounted.current = true;
     let cancelled = false;
     let unlisten: (() => void) | undefined;
+    let unlistenDisplay: (() => void) | undefined;
     const connect = async () => {
       // Listening first prevents a draw between the initial fetch and subscription
       // from being lost. The revision guard also rejects an older fetch response.
@@ -44,12 +55,29 @@ export function useRaffle() {
     void connect().catch((reason: unknown) => {
       if (!cancelled) setError(errorMessage(reason));
     });
+    const connectDisplay = async () => {
+      const stop = await bridge.subscribeDisplayStatus((incoming) => {
+        if (!cancelled) acceptDisplay(incoming);
+      });
+      if (cancelled) { stop(); return; }
+      unlistenDisplay = stop;
+      // Subscribe before fetching; revisions reject a late response from before
+      // a launch or a manual Alt+F4 close event.
+      const initial = await bridge.getDisplayStatus();
+      if (!cancelled) acceptDisplay(initial);
+    };
+    void connectDisplay().catch((reason: unknown) => {
+      if (!cancelled) setError(errorMessage(reason));
+    }).finally(() => {
+      if (!cancelled) setDisplayBusy(displayPending.current);
+    });
     return () => {
       cancelled = true;
       mounted.current = false;
       unlisten?.();
+      unlistenDisplay?.();
     };
-  }, [accept]);
+  }, [accept, acceptDisplay]);
 
   const run = useCallback(async (action: () => Promise<Snapshot | void>): Promise<void> => {
     pendingActions.current += 1;
@@ -68,15 +96,32 @@ export function useRaffle() {
     }
   }, [accept]);
 
+  const runDisplay = useCallback(async (action: () => Promise<bridge.DisplayStatus>): Promise<void> => {
+    // A ref takes effect before React renders the disabled button, blocking a
+    // rapid second click while native window creation/destruction is pending.
+    if (displayPending.current) return;
+    displayPending.current = true;
+    if (mounted.current) { setDisplayBusy(true); setError(null); }
+    try {
+      acceptDisplay(await action());
+    } catch (reason) {
+      if (mounted.current) setError(errorMessage(reason));
+    } finally {
+      displayPending.current = false;
+      if (mounted.current) setDisplayBusy(false);
+    }
+  }, [acceptDisplay]);
+
   const actions = useMemo(() => ({
     updateConfig: (config: Config) => run(() => bridge.updateConfig(config)),
     updatePresentation: (presentation: Presentation) => run(() => bridge.updatePresentation(presentation)),
     draw: () => run(bridge.draw),
     resetSession: () => run(bridge.resetSession),
-    launchDisplay: () => run(bridge.launchDisplay),
-    closeDisplay: () => run(bridge.closeDisplay),
-  }), [run]);
+    launchDisplay: () => runDisplay(bridge.launchDisplay),
+    closeDisplay: () => runDisplay(bridge.closeDisplay),
+    toggleDisplay: () => runDisplay(bridge.toggleDisplay),
+  }), [run, runDisplay]);
   const clearError = useCallback(() => setError(null), []);
 
-  return { snapshot, error, busy, actions, clearError };
+  return { snapshot, error, busy, displayOpen, displayBusy, actions, clearError };
 }

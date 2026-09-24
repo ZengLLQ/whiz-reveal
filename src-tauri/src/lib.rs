@@ -6,10 +6,11 @@ use rand::{
     rngs::{OsRng, StdRng},
     SeedableRng,
 };
+use serde::Serialize;
 use std::{
     sync::{
         atomic::{AtomicBool, Ordering},
-        Mutex,
+        Condvar, Mutex,
     },
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
@@ -17,10 +18,59 @@ use storage::{new_session_id, SessionStore};
 use tauri::{AppHandle, Emitter, Manager, State, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
 
 const STATE_EVENT: &str = "whizreveal://state";
+const DISPLAY_EVENT: &str = "whizreveal://display";
+
+#[derive(Clone, Copy, Default, Serialize)]
+struct DisplayStatus {
+    open: bool,
+    revision: u64,
+}
+
+impl DisplayStatus {
+    fn set_open(&mut self, open: bool) -> bool {
+        if self.open == open {
+            return false;
+        }
+        self.open = open;
+        self.revision += 1;
+        true
+    }
+}
 
 struct Backend {
     store: Mutex<Result<SessionStore, String>>,
     display_launching: AtomicBool,
+    display_status: Mutex<DisplayStatus>,
+    display_changed: Condvar,
+}
+
+fn display_status(backend: &Backend) -> Result<DisplayStatus, String> {
+    backend
+        .display_status
+        .lock()
+        .map(|status| *status)
+        .map_err(|_| "The display status is unavailable. Restart WhizReveal.".into())
+}
+
+fn publish_display(app: &AppHandle, open: bool) -> Result<DisplayStatus, String> {
+    let backend = app.state::<Backend>();
+    let mut status = backend
+        .display_status
+        .lock()
+        .map_err(|_| "The display status is unavailable. Restart WhizReveal.".to_string())?;
+    if status.set_open(open) {
+        // Serialize lifecycle events with revisions, independently of raffle state.
+        if let Err(error) = app.emit(DISPLAY_EVENT, *status) {
+            eprintln!("WhizReveal could not deliver a display event: {error}");
+        }
+        backend.display_changed.notify_all();
+    }
+    Ok(*status)
+}
+
+#[tauri::command]
+fn get_display_status(backend: State<'_, Backend>) -> Result<DisplayStatus, String> {
+    display_status(&backend)
 }
 
 fn require_controller(window: &WebviewWindow) -> Result<(), String> {
@@ -151,13 +201,13 @@ async fn launch_display(
     window: WebviewWindow,
     app: AppHandle,
     backend: State<'_, Backend>,
-) -> Result<(), String> {
+) -> Result<DisplayStatus, String> {
     require_controller(&window)?;
     if backend.display_launching.swap(true, Ordering::AcqRel) {
-        return Err("The display is already opening.".into());
+        return Err("The display is already opening or closing.".into());
     }
     // Webview creation must run in an async command on Windows (WebView2).
-    let result = (|| -> Result<(), String> {
+    let result = (|| -> Result<DisplayStatus, String> {
         if let Some(display) = app.get_webview_window("display") {
             display.show().map_err(|error| error.to_string())?;
             display
@@ -168,7 +218,9 @@ async fn launch_display(
                 .map_err(|error| error.to_string())?;
             display.set_focus().map_err(|error| error.to_string())?;
             window.set_focus().map_err(|error| error.to_string())?;
-            return Ok(());
+            // This window was recorded when it was built. Read its latest
+            // lifecycle state so a simultaneous manual close cannot be undone.
+            return display_status(&backend);
         }
         let monitors = window
             .available_monitors()
@@ -199,6 +251,9 @@ async fn launch_display(
         .background_color(tauri::window::Color(11, 13, 16, 255))
         .build()
         .map_err(|error| format!("Could not launch the display: {error}"))?;
+        // Record the new hidden window before showing it. A manual close can
+        // then only advance this revision, never be overwritten by launch.
+        publish_display(&app, true)?;
         // Use physical monitor coordinates to respect mixed-DPI and negative-position displays.
         let show_result = (|| -> Result<(), String> {
             if let Some(monitor) = target {
@@ -219,19 +274,54 @@ async fn launch_display(
         if show_result.is_err() {
             let _ = display.close();
         }
-        show_result
+        show_result?;
+        display_status(&backend)
     })();
     backend.display_launching.store(false, Ordering::Release);
     result
 }
 
 #[tauri::command]
-fn close_display(window: WebviewWindow, app: AppHandle) -> Result<(), String> {
+async fn close_display(
+    window: WebviewWindow,
+    app: AppHandle,
+    backend: State<'_, Backend>,
+) -> Result<DisplayStatus, String> {
     require_controller(&window)?;
-    if let Some(display) = app.get_webview_window("display") {
-        display.close().map_err(|error| error.to_string())?;
+    if backend.display_launching.swap(true, Ordering::AcqRel) {
+        return Err("The display is already opening or closing.".into());
     }
-    Ok(())
+    let operation = async {
+        if let Some(display) = app.get_webview_window("display") {
+            display.close().map_err(|error| error.to_string())?;
+            // Closing is asynchronous. Wait off the main/runtime thread for
+            // Destroyed before allowing the same window label to be reopened.
+            let app = app.clone();
+            tauri::async_runtime::spawn_blocking(move || {
+                let backend = app.state::<Backend>();
+                let status = backend
+                    .display_status
+                    .lock()
+                    .map_err(|_| "The display status is unavailable.".to_string())?;
+                let (status, _) = backend
+                    .display_changed
+                    .wait_timeout_while(status, Duration::from_secs(5), |status| status.open)
+                    .map_err(|_| "The display status is unavailable.".to_string())?;
+                if status.open {
+                    Err("The display could not close. Close its window and try again.".into())
+                } else {
+                    Ok(*status)
+                }
+            })
+            .await
+            .map_err(|error| format!("Could not wait for the display to close: {error}"))?
+        } else {
+            publish_display(&app, false)
+        }
+    }
+    .await;
+    backend.display_launching.store(false, Ordering::Release);
+    operation
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -247,10 +337,15 @@ pub fn run() {
             app.manage(Backend {
                 store: Mutex::new(store),
                 display_launching: AtomicBool::new(false),
+                display_status: Mutex::new(DisplayStatus::default()),
+                display_changed: Condvar::new(),
             });
             Ok(())
         })
         .on_window_event(|window, event| {
+            if window.label() == "display" && matches!(event, tauri::WindowEvent::Destroyed) {
+                let _ = publish_display(window.app_handle(), false);
+            }
             if window.label() == "controller" && matches!(event, tauri::WindowEvent::Destroyed) {
                 if let Some(display) = window.app_handle().get_webview_window("display") {
                     let _ = display.close();
@@ -263,9 +358,44 @@ pub fn run() {
             update_presentation,
             draw,
             reset_session,
+            get_display_status,
             launch_display,
             close_display
         ])
         .run(tauri::generate_context!())
         .expect("WhizReveal could not start the native application");
+}
+
+#[cfg(test)]
+mod display_tests {
+    use super::DisplayStatus;
+
+    #[test]
+    fn display_revisions_follow_open_close_and_reopen() {
+        let mut status = DisplayStatus::default();
+        assert!(!status.open);
+        assert_eq!(status.revision, 0);
+        assert!(status.set_open(true));
+        assert!(status.open);
+        assert_eq!(status.revision, 1);
+        assert!(status.set_open(false));
+        assert!(!status.open);
+        assert_eq!(status.revision, 2);
+        assert!(status.set_open(true));
+        assert!(status.open);
+        assert_eq!(status.revision, 3);
+    }
+
+    #[test]
+    fn repeated_status_reports_do_not_create_false_transitions() {
+        let mut status = DisplayStatus::default();
+        assert!(!status.set_open(false));
+        assert_eq!(status.revision, 0);
+        assert!(status.set_open(true));
+        assert!(!status.set_open(true));
+        assert_eq!(status.revision, 1);
+        assert!(status.set_open(false));
+        assert!(!status.set_open(false));
+        assert_eq!(status.revision, 2);
+    }
 }

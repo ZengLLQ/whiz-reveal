@@ -9,7 +9,7 @@ import { useRaffle } from './hooks/useRaffle';
 const isDisplay = new URLSearchParams(window.location.search).get('window') === 'display';
 
 export function App() {
-  const { snapshot, error, busy, actions, clearError } = useRaffle();
+  const { snapshot, error, busy, displayOpen, displayBusy, actions, clearError } = useRaffle();
   const [windowError, setWindowError] = useState<string | null>(null);
   const [fullscreen, setFullscreen] = useState(isNative && isDisplay);
 
@@ -62,7 +62,7 @@ export function App() {
 
   return <>
     {snapshot ? isDisplay ? <main className="display-shell"><RevealCanvas snapshot={snapshot} presentation /><div className="display-tools"><button className="display-tool" aria-label={fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'} title={fullscreen ? 'Exit fullscreen (Esc)' : 'Enter fullscreen (F11)'} onClick={() => void toggleFullscreen()}>{fullscreen ? <Minimize size={18} /> : <Maximize size={18} />}</button></div></main>
-      : <Controller snapshot={snapshot} actions={actions} busy={busy} />
+      : <Controller snapshot={snapshot} actions={actions} busy={busy} displayOpen={displayOpen} displayBusy={displayBusy} />
       : <main className="loading-screen"><span className="loading-dot" /><span className={isDisplay ? 'sr-only' : ''}>{error ? 'Unable to load session' : 'Opening your session'}</span>{error && <button className="secondary-button" onClick={() => window.location.reload()}>Try again</button>}</main>}
     <ErrorToast message={error ?? windowError} onClose={() => { clearError(); setWindowError(null); }} />
   </>;

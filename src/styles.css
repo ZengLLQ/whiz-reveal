@@ -7,7 +7,7 @@
   --color-line: #2A333D;
   --color-muted: #5D6F82;
   --color-paper: #E7EEF5;
-  --font-sans: "Inter Variable", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --font-sans: "Aeonik", "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
 }
 
 :root { font-family: var(--font-sans); color: #E7EEF5; background: #0B0D10; font-synthesis: none; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; font-weight: 400; }

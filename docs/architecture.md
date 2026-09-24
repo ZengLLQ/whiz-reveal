@@ -9,7 +9,12 @@ WhizReveal has one Rust-owned native session and two React window roles. The con
 | `src/App.tsx` | Window role, session connection, fullscreen controls, error presentation |
 | `src/components/Controller.tsx` | Inputs, apply action, draw trigger, session history, reset confirmation |
 | `src/components/ControllerTextSize.tsx` | Accessible text-size controls for the controller |
-| `src/components/ImmersiveStage.tsx` | Pointer-responsive decorative backdrop with reduced-motion support |
+| `src/components/ImmersiveStage.tsx` | Stable preview composition and pointer input for the sculpture |
+| `src/components/StageSculpture.tsx` | Lazy Three.js renderer, palette shader, reduced motion, resource cleanup and fallback |
+| `src/components/ManualGuide.tsx` | Language chooser, accessible modal, guide navigation and focus restore |
+| `src/lib/manual-content.ts` | Offline English, Indonesian, and Simplified Chinese guide copy |
+| `src/fonts.css` | Local Aeonik font faces and weights |
+| `src-tauri/windows/font-hooks.nsh` | Per-user font registration, preservation, and owned-file cleanup |
 | `src/components/RevealCanvas.tsx` | Responsive number grid, decorative cycling, Framer Motion reveal, full history |
 | `src/styles.css` | Five-color theme, layout, custom scrollbars, responsive rules |
 | `src/immersive.css` | Layered surfaces, dimensional number tiles, and responsive depth treatment |
@@ -58,8 +63,9 @@ History is newest first. Timestamps are Unix milliseconds. Draw IDs start at one
 | `update_presentation` | `{ presentation }` | Persisted snapshot with view/scale |
 | `draw` | None | Persisted winners and active reveal |
 | `reset_session` | None | New session ID and empty history, retaining settings |
-| `launch_display` | None | Creates or reuses the fullscreen display |
-| `close_display` | None | Closes the display if present |
+| `get_display_status` | None | `{ open, revision }`; readable by both windows |
+| `launch_display` | None | Creates or reuses the fullscreen display, returns its status |
+| `close_display` | None | Waits for window destruction and returns its status |
 
 All mutation and display-management commands check the caller's native window label and require `controller`. After a successful mutation, Rust broadcasts `whizreveal://state` with the complete snapshot. The command response also returns that authoritative snapshot. The event is a notification, never an instruction to trust a frontend-selected winning number.
 
@@ -100,7 +106,7 @@ The controller's text preference ranges from 90% to 150% in 10% increments and r
 
 Controller typography scales through scoped CSS rules instead of zooming the entire window. Form labels, buttons, history copy, and the reset dialog follow the preference. Preview numbers and audience numbers retain their own sizing rules; the existing presentation scale remains responsible for audience number sizing.
 
-The interface uses layered surfaces and restrained spatial effects within the five-color palette. `ImmersiveStage` moves only its decorative backdrop in response to a mouse pointer; number results keep a stable plane. The audience view remains focused on numbers, and the draw animation remains rapid 2D number cycling followed by a spring reveal. Reduced-motion preferences suppress decorative motion. Inter Variable is bundled through `@fontsource-variable/inter/wght.css`, so typography does not require a remote font request. See [the design notes](design.md) for the rationale.
+The interface uses layered surfaces and restrained spatial effects within the five-color palette. `ImmersiveStage` moves only its decorative backdrop in response to a mouse pointer; number results keep a stable plane. The audience view remains focused on numbers, and the draw animation remains rapid 2D number cycling followed by a spring reveal. Reduced-motion preferences suppress decorative motion. Aeonik is bundled through `src/fonts.css`, so typography does not require a remote font request. The installer also registers the fonts for the current Windows user; see the font provenance document. See [the design notes](design.md) for the rationale.
 
 ## Browser preview boundary
 
@@ -111,3 +117,9 @@ Preview randomness uses `crypto.getRandomValues` with rejection sampling to avoi
 ## Validation scope
 
 Run the commands in the [README](../README.md#checks) for frontend type checks, preview unit tests, production frontend compilation, and native Rust tests. For release acceptance, also open the built Windows app and exercise the full controller/display flow, mixed-DPI monitor placement, fullscreen shortcuts, session restoration, pool exhaustion, and large scrollable draws. Build commands and expected output paths are instructions, not a record that a particular release has passed those checks.
+
+## Display toggle lifecycle
+
+Display visibility is a separate revisioned `{ open, revision }` state broadcast as `whizreveal://display`. The controller subscribes before fetching the initial status and ignores older responses. Launch/close errors appear through the normal error toast. `toggleDisplay` reads the authoritative status; rapid requests are coalesced by the bridge and the hook immediately marks the operation pending. The button uses independent `displayBusy` state so closing a presentation does not block raffle processing.
+
+Rust serializes window creation/closure with an atomic guard. Closure waits off the UI thread until the display's Destroyed event publishes a closed status, allowing the same label to be reopened. Manual window closure uses the same event. Neither command modifies the raffle snapshot or persisted history. Browser preview checks the popup handle for manual closure and preserves the user gesture when opening a popup.

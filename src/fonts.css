@@ -1,0 +1,25 @@
+/* Bundled, unmodified fonts: no network connection or OS font installation required. */
+@font-face {
+  font-family: 'Aeonik';
+  src: url('/fonts/aeonik/Aeonik-Regular.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Aeonik';
+  src: url('/fonts/aeonik/Aeonik-Medium.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+}
+
+/* The supplied family has no Semibold file. Use its real Bold for 600 and 700. */
+@font-face {
+  font-family: 'Aeonik';
+  src: url('/fonts/aeonik/Aeonik-Bold.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 600 700;
+  font-display: swap;
+}
