@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { getCurrentWindow, LogicalSize } from '@tauri-apps/api/window';
 import { Maximize, Minimize } from 'lucide-react';
 import { Controller, ErrorToast } from './components/Controller';
+import { ImmersiveStage } from './components/ImmersiveStage';
 import { RevealCanvas } from './components/RevealCanvas';
 import { isNative } from './lib/bridge';
 import { useRaffle } from './hooks/useRaffle';
@@ -61,7 +62,7 @@ export function App() {
   }, [fullscreen]);
 
   return <>
-    {snapshot ? isDisplay ? <main className="display-shell"><RevealCanvas snapshot={snapshot} presentation /><div className="display-tools"><button className="display-tool" aria-label={fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'} title={fullscreen ? 'Exit fullscreen (Esc)' : 'Enter fullscreen (F11)'} onClick={() => void toggleFullscreen()}>{fullscreen ? <Minimize size={18} /> : <Maximize size={18} />}</button></div></main>
+    {snapshot ? isDisplay ? <main className="display-shell"><ImmersiveStage presentation occupied={snapshot.history.length > 0 || !!snapshot.activeDraw}><RevealCanvas snapshot={snapshot} presentation /></ImmersiveStage><div className="display-tools"><button className="display-tool" aria-label={fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'} title={fullscreen ? 'Exit fullscreen (Esc)' : 'Enter fullscreen (F11)'} onClick={() => void toggleFullscreen()}>{fullscreen ? <Minimize size={18} /> : <Maximize size={18} />}</button></div></main>
       : <Controller snapshot={snapshot} actions={actions} busy={busy} displayOpen={displayOpen} displayBusy={displayBusy} />
       : <main className="loading-screen"><span className="loading-dot" /><span className={isDisplay ? 'sr-only' : ''}>{error ? 'Unable to load session' : 'Opening your session'}</span>{error && <button className="secondary-button" onClick={() => window.location.reload()}>Try again</button>}</main>}
     <ErrorToast message={error ?? windowError} onClose={() => { clearError(); setWindowError(null); }} />

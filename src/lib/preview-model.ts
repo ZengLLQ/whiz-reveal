@@ -6,7 +6,7 @@ export function createPreviewSnapshot(sessionId: string): Snapshot {
   return {
     revision: 0,
     sessionId,
-    config: { totalSamples: 250, drawCount: 5, noDuplicates: true },
+    config: { totalSamples: 100, drawCount: 10, noDuplicates: true },
     presentation: { scale: 1, view: 'current' },
     history: [],
     activeDraw: null,

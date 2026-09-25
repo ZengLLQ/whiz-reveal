@@ -15,6 +15,9 @@ const NOW = 1_800_000_000_000;
 const firstAvailable = () => 0;
 
 describe('browser preview draw rules', () => {
+  it('starts new installations with 100 samples and 10 winners', () => {
+    expect(createPreviewSnapshot('fresh').config).toEqual({ totalSamples: 100, drawCount: 10, noDuplicates: true });
+  });
   it('draws without replacement and exhausts the entire pool across draws', () => {
     let state = createPreviewSnapshot('session');
     state = updatePreviewConfig(state, { totalSamples: 5, drawCount: 3, noDuplicates: true });

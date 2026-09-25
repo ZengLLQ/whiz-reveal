@@ -37,3 +37,7 @@ Three.js is loaded asynchronously. Rendering is capped at 30 frames per second a
 Drawing uses approximately 1.6 seconds of rapid 2D number cycling, followed by a staggered spring reveal. The depth treatment does not turn this into a slot-machine animation. Reduced-motion preferences suppress decorative movement and entrance animation, using a quiet placeholder during the draw before showing the committed result.
 
 The [verification notes](verification.md) distinguish completed checks from acceptance work for the updated interface.
+
+## v1.3.1
+
+The audience Display now shares the locally rendered 3D sculpture, behind current results and full history. Its decorative layer stays fixed while numbers scroll, uses the existing palette, and inherits reduced-motion and WebGL fallback support. Fresh sessions without saved data start at 100 total samples and 10 winners per draw. Existing saved configuration remains unchanged.

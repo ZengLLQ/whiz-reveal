@@ -17,8 +17,8 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            total_samples: 250,
-            draw_count: 5,
+            total_samples: 100,
+            draw_count: 10,
             no_duplicates: true,
         }
     }
@@ -237,6 +237,13 @@ impl Snapshot {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn fresh_install_defaults() {
+        let config = super::Config::default();
+        assert_eq!(config.total_samples, 100);
+        assert_eq!(config.draw_count, 10);
+    }
+
     use super::*;
     use rand::{rngs::StdRng, SeedableRng};
 
