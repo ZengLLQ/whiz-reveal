@@ -1,0 +1,45 @@
+name: macOS universal build
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+      - run: npm ci
+      - run: npm test
+      - run: cargo test --manifest-path src-tauri/Cargo.toml --locked
+      - run: npm run tauri -- build --target universal-apple-darwin --bundles app,dmg
+      - name: Verify universal app and embedded resources
+        shell: bash
+        run: |
+          APP=src-tauri/target/universal-apple-darwin/release/bundle/macos/WhizReveal.app
+          lipo -verify_arch arm64 x86_64 "$APP/Contents/MacOS/whizreveal"
+          codesign --verify --deep --strict "$APP"
+          test -f "$APP/Contents/Resources/fonts/Aeonik-Regular.ttf"
+          plutil -lint "$APP/Contents/Info.plist"
+          ditto -c -k --sequesterRsrc --keepParent "$APP" WhizReveal-macOS-universal.zip
+          shasum -a 256 src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg WhizReveal-macOS-universal.zip > SHA256SUMS-macOS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WhizReveal-macOS-universal
+          if-no-files-found: error
+          path: |
+            src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
+            WhizReveal-macOS-universal.zip
+            SHA256SUMS-macOS.txt

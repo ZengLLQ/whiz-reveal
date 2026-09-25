@@ -1,6 +1,6 @@
 # WhizReveal
 
-**WhizReveal by JAYCEE 曾令强** is a Windows raffle application built with Tauri 2, Rust, React, TypeScript, Tailwind CSS 4, and Framer Motion. A controller manages the pool and session; a separate fullscreen display presents the numbers to an audience.
+**WhizReveal by JAYCEE 曾令强** is a Windows and macOS raffle application built with Tauri 2, Rust, React, TypeScript, Tailwind CSS 4, and Framer Motion. A controller manages the pool and session; a separate fullscreen display presents the numbers to an audience.
 
 Choose **Guide** beside **UI text**, then select **English**, **中文**, or **Bahasa Indonesia**. The built-in guide works offline and includes setup, presentation, shortcuts, and session help. The earlier [PDF manual for v1.1.3](output/pdf/WhizReveal-User-Manual-EN-ID-ZH.pdf) remains available as an archive; use the in-app guide for the current controls.
 
@@ -112,3 +112,10 @@ cargo test --manifest-path src-tauri/Cargo.toml
 JavaScript tests exercise preview sampling, constraints, revision ordering, synchronization, and controller text-size preference normalization. Rust tests exercise native drawing, validation, session persistence, recovery, and file locking. These checks do not replace native UI testing on the intended presentation monitors.
 
 See [the architecture notes](docs/architecture.md) for the project layout and IPC contract.
+
+## Sound and macOS
+
+The controller plays a click, shuffle ticks, and a result chime. Use **Sound on/off** in the top bar to mute or enable all cues. Sound is synthesized offline and never duplicated by the audience display. The preference is saved locally.
+
+See [macOS build and signing notes](docs/macos.md) for the universal Intel / Apple Silicon package.
+

@@ -172,3 +172,11 @@ export const manualContent: Record<GuideLanguage, GuideContent> = {
     },
   },
 };
+
+// Sound is local to the controller; the audience window never doubles the audio.
+manualContent.en.pages.display.items.push({ title: 'Draw sounds', body: 'Sound on plays a soft click, rising shuffle ticks, and a reveal chime. Click Sound on to mute immediately; Sound off enables audio again. Your choice is saved on this device. Audio uses the controller computer’s selected system output. Restoring past results is silent.' });
+manualContent.id.pages.display.items.push({ title: 'Suara pengundian', body: 'Sound on memutar klik lembut, ketukan saat nomor diacak, dan nada saat hasil muncul. Klik Sound on untuk langsung membisukan; Sound off mengaktifkan suara kembali. Pilihan disimpan di perangkat ini. Suara memakai keluaran audio sistem komputer controller. Membuka hasil lama tidak memutar suara.' });
+manualContent.zh.pages.display.items.push({ title: '抽奖音效', body: 'Sound on 会播放轻柔的点击音、抽奖中的节奏音和结果揭晓提示音。点击 Sound on 可立即静音；点击 Sound off 可重新开启。设置保存在本机。声音使用控制端电脑的系统音频输出，恢复历史结果时不播放音效。' });
+manualContent.en.pages.shortcuts.items.push({ title: 'macOS window controls', body: 'On Mac, use Command + W to close the focused window, or Command + Q to quit. If F11 controls a system function, use the display’s fullscreen button instead.' });
+manualContent.id.pages.shortcuts.items.push({ title: 'Kontrol jendela macOS', body: 'Di Mac, gunakan Command + W untuk menutup jendela aktif atau Command + Q untuk keluar. Jika F11 menjalankan fungsi sistem, gunakan tombol fullscreen pada display.' });
+manualContent.zh.pages.shortcuts.items.push({ title: 'macOS 窗口操作', body: '在 Mac 上，Command + W 关闭当前窗口，Command + Q 退出应用。如果 F11 被系统占用，请使用展示窗口的全屏按钮。' });

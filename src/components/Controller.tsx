@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowRight, Check, CircleHelp, History, Monitor, RotateCcw, X } from 'lucide-react';
+import { ArrowRight, Check, CircleHelp, History, Monitor, RotateCcw, Volume2, VolumeX, X } from 'lucide-react';
 import type { Config, Snapshot } from '../lib/types';
 import { isNative } from '../lib/bridge';
 import { useRaffle } from '../hooks/useRaffle';
@@ -10,6 +10,7 @@ import { ControllerTextSize } from './ControllerTextSize';
 import { ManualGuide } from './ManualGuide';
 import { useControllerTextSize } from '../hooks/useControllerTextSize';
 import '../controller-typography.css';
+import { useDrawSound } from '../hooks/useDrawSound';
 
 type Actions = ReturnType<typeof useRaffle>['actions'];
 
@@ -110,6 +111,7 @@ function HistorySidebar({ snapshot }: { snapshot: Snapshot }) {
 
 export function Controller({ snapshot, actions, busy, displayOpen, displayBusy }: { snapshot: Snapshot; actions: Actions; busy: boolean; displayOpen: boolean; displayBusy: boolean }) {
   const textSize = useControllerTextSize();
+  const sound = useDrawSound(snapshot);
   const [showReset, setShowReset] = useState(false);
   const [dirty, setDirty] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -124,12 +126,12 @@ export function Controller({ snapshot, actions, busy, displayOpen, displayBusy }
     function onKey(event: KeyboardEvent) {
       const target = event.target as HTMLElement;
       if (event.key === 'Enter' && !event.repeat && !showReset && !document.querySelector('dialog[open]') && !disabled && !target.closest('input, button, dialog, select, textarea, [role="switch"]')) {
-        event.preventDefault(); void actions.draw();
+        event.preventDefault(); sound.click(); void actions.draw();
       }
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [actions, disabled, showReset]);
+  }, [actions, disabled, showReset, sound.click]);
   useEffect(() => { if (showReset) dialogRef.current?.showModal(); else dialogRef.current?.close(); }, [showReset]);
 
   return (
@@ -137,7 +139,7 @@ export function Controller({ snapshot, actions, busy, displayOpen, displayBusy }
       style={{ '--controller-text-scale': textSize.percentage / 100 } as CSSProperties}>
       <header className="app-topbar">
         <div className="branding"><svg className="brand-symbol" viewBox="0 0 40 40" aria-hidden="true"><path d="m7 11 6 19 7-13 7 13 6-19" /></svg><div><span className="brand-name">WhizReveal</span><span className="brand-credit">by JAYCEE 曾令强</span></div></div>
-        <div className="topbar-actions"><ControllerTextSize {...textSize} /><ManualGuide /><button className="secondary-button launch-button" onClick={() => void actions.toggleDisplay()} disabled={displayBusy} aria-pressed={displayOpen} aria-label={displayOpen ? 'Close display' : 'Launch display'}>
+        <div className="topbar-actions"><ControllerTextSize {...textSize} /><ManualGuide /><button className="secondary-button sound-button" onClick={sound.toggle} aria-pressed={sound.enabled} aria-label={sound.enabled ? 'Mute draw sounds' : 'Enable draw sounds'} title={sound.enabled ? 'Sound on' : 'Sound off'}>{sound.enabled ? <Volume2 size={16} /> : <VolumeX size={16} />}<span>Sound {sound.enabled ? 'on' : 'off'}</span></button><button className="secondary-button launch-button" onClick={() => void actions.toggleDisplay()} disabled={displayBusy} aria-pressed={displayOpen} aria-label={displayOpen ? 'Close display' : 'Launch display'}>
           {displayOpen ? <X size={15} /> : <Monitor size={15} />}<span>{displayBusy ? 'Please wait' : displayOpen ? 'Close display' : 'Launch display'}</span>
         </button></div>
       </header>
@@ -150,7 +152,7 @@ export function Controller({ snapshot, actions, busy, displayOpen, displayBusy }
             <div className="preview-baseline"><span>{drawing ? 'Drawing in progress' : latest ? `Draw ${String(latest.id).padStart(2, '0')} · ${latest.numbers.length} ${latest.numbers.length === 1 ? 'number' : 'numbers'}` : 'WhizReveal / A moment of possibility'}</span><span className="baseline-mark" aria-hidden="true">↗</span></div>
           </ImmersiveStage>
           <div className="session-stats"><div><span className="stat-value">{snapshot.config.totalSamples.toLocaleString()}</span><span className="stat-label">Total samples</span></div><div><span className="stat-value">{drawn.toLocaleString()}</span><span className="stat-label">Unique drawn</span></div><div><span className="stat-value">{snapshot.config.noDuplicates ? remaining.toLocaleString() : '∞'}</span><span className="stat-label">{snapshot.config.noDuplicates ? 'Remaining' : 'With repeats'}</span></div></div>
-          <button className="draw-button" disabled={disabled} onClick={() => void actions.draw()}>
+          <button className="draw-button" disabled={disabled} onClick={() => { sound.click(); void actions.draw(); }}>
             <span>{drawing ? 'Drawing' : dirty ? 'Apply settings to draw' : exhausted ? remaining === 0 ? 'Pool complete' : 'Not enough numbers' : `Draw ${snapshot.config.drawCount} ${snapshot.config.drawCount === 1 ? 'number' : 'numbers'}`}</span>
             {drawing ? <span className="drawing-dots"><i /><i /><i /></span> : <ArrowRight size={21} />}
           </button>
@@ -169,3 +171,4 @@ export function Controller({ snapshot, actions, busy, displayOpen, displayBusy }
 export function ErrorToast({ message, onClose }: { message: string | null; onClose: () => void }) {
   return <AnimatePresence>{message && <motion.div className="error-toast" role="alert" initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ opacity: 0 }}><span>{message}</span><button onClick={onClose} aria-label="Dismiss error"><X size={17} /></button></motion.div>}</AnimatePresence>;
 }
+
