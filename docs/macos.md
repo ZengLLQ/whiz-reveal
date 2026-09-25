@@ -23,3 +23,5 @@ The current build uses an ad-hoc signature and is **not Apple-notarized**. Gatek
 Manual acceptance on a real Mac must still cover opening the downloaded app, audio playback on the selected output, external display placement/fullscreen behavior, window close/reopen, and persisted sessions. A CI build does not prove these interactions.
 
 References: [Tauri DMG packaging](https://v2.tauri.app/distribute/dmg/) and [macOS signing](https://v2.tauri.app/distribute/sign/macos/).
+
+The v1.3.0 universal build completed successfully: [verified GitHub Actions run](https://github.com/ZengLLQ/WhizReveal/actions/runs/36090281684). Download the DMG or zipped `.app` from the [v1.3.0 release](https://github.com/ZengLLQ/WhizReveal/releases/tag/v1.3.0).
