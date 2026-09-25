@@ -2,6 +2,8 @@ export interface Config {
   totalSamples: number;
   drawCount: number;
   noDuplicates: boolean;
+  /** Missing in older sessions: defaults to 1600 ms. */
+  drawDurationMs?: number;
 }
 
 export interface Presentation {

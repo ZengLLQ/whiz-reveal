@@ -124,3 +124,5 @@
 .presentation-stage > .stage-sculpture { inset: 0; z-index: -1; opacity: 0.45; }
 .presentation-stage.stage-occupied > .stage-sculpture { opacity: 0.22; transform: scale(1.25) translate(25%, 0); }
 .presentation-stage > .presentation-canvas { position: relative; background: transparent; }
+
+.duration-select { width: 100%; margin-top: 10px; padding: 12px 14px; border: 1px solid #2A333D; border-radius: 11px; background: #171C22; color: #E7EEF5; font: inherit; font-size: calc(13px * var(--controller-text-scale, 1)); color-scheme: dark; }

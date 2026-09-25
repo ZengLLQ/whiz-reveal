@@ -118,3 +118,5 @@ See [the architecture notes](docs/architecture.md) for the project layout and IP
 The controller plays a click, shuffle ticks, and a result chime. Use **Sound on/off** in the top bar to mute or enable all cues. Sound is synthesized offline and never duplicated by the audience display. The preference is saved locally.
 
 See [macOS build and signing notes](docs/macos.md) for the universal Intel / Apple Silicon package.
+
+Draw duration in Draw setup selects 1, 1.6, 3, 5, 10, 15, 20 or 30 seconds. It saves with the session, applies to the next draw, and synchronizes shuffle animation and sound across the chosen duration. Older sessions without this setting retain the original 1.6 seconds. Pending parameter edits must be applied first.

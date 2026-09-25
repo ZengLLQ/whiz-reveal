@@ -1,7 +1,7 @@
 mod engine;
 mod storage;
 
-use engine::{Config, Presentation, Snapshot, DRAW_DURATION_MS};
+use engine::{Config, Presentation, Snapshot};
 use rand::{
     rngs::{OsRng, StdRng},
     SeedableRng,
@@ -168,8 +168,13 @@ fn draw(
         .ok_or("The draw could not be started.")?
         .draw
         .id;
+    let duration_ms = snapshot
+        .active_draw
+        .as_ref()
+        .ok_or("No active draw")?
+        .duration_ms;
     std::thread::spawn(move || {
-        std::thread::sleep(Duration::from_millis(DRAW_DURATION_MS));
+        std::thread::sleep(Duration::from_millis(duration_ms));
         let backend = app.state::<Backend>();
         if let Ok(mut guard) = backend.store.lock() {
             if let Ok(store) = guard.as_mut() {

@@ -15,6 +15,17 @@ const NOW = 1_800_000_000_000;
 const firstAvailable = () => 0;
 
 describe('browser preview draw rules', () => {
+  it('waits for the selected duration and rejects invalid durations', () => {
+    let state = createPreviewSnapshot('duration');
+    state = updatePreviewConfig(state, { ...state.config, drawDurationMs: 10000 });
+    state = drawPreview(state, NOW, firstAvailable);
+    expect(state.activeDraw?.durationMs).toBe(10000);
+    expect(finishPreviewDraw(state, NOW + 9999)).toBe(state);
+    expect(finishPreviewDraw(state, NOW + 10000).activeDraw).toBeNull();
+    for (const drawDurationMs of [0, 999, 30001, NaN]) {
+      expect(() => updatePreviewConfig(createPreviewSnapshot('invalid'), { ...state.config, drawDurationMs })).toThrow();
+    }
+  });
   it('starts new installations with 100 samples and 10 winners', () => {
     expect(createPreviewSnapshot('fresh').config).toEqual({ totalSamples: 100, drawCount: 10, noDuplicates: true });
   });

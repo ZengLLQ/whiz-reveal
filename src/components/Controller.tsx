@@ -68,6 +68,12 @@ function Parameters({ snapshot, actions, busy, onDirtyChange }: { snapshot: Snap
         {editing && <button className="apply-button" type="submit" disabled={disabled}><Check size={14} />Apply settings</button>}
         {fieldError && <p role="alert" className="field-error">{fieldError}</p>}
       </form>
+      <label className="field-label mt-6" htmlFor="draw-duration">Draw duration</label>
+      <select id="draw-duration" className="duration-select" value={snapshot.config.drawDurationMs ?? 1600} disabled={disabled || editing}
+        onChange={(event) => void actions.updateConfig({ ...snapshot.config, drawDurationMs: Number(event.target.value) })}>
+        {[1000, 1600, 3000, 5000, 10000, 15000, 20000, 30000].map(ms => <option key={ms} value={ms}>{ms / 1000} seconds</option>)}
+      </select>
+      <p className="field-hint">Time before winners are revealed.</p>
       <div className="toggle-row">
         <div><span className="field-label">No duplicates</span><p className="field-hint">Each number wins once.</p></div>
         <button className="switch" role="switch" aria-checked={snapshot.config.noDuplicates} aria-label="No duplicates"

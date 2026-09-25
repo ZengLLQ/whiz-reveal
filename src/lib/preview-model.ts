@@ -20,6 +20,8 @@ export function validateConfig(config: Config): void {
   if (!Number.isInteger(config.drawCount) || config.drawCount < 1 || config.drawCount > 500) {
     throw new Error('Number of draws must be a whole number between 1 and 500.');
   }
+  const duration = config.drawDurationMs ?? DRAW_DURATION_MS;
+  if (!Number.isInteger(duration) || duration < 1000 || duration > 30000) throw new Error('Draw duration must be between 1 and 30 seconds.');
   if (typeof config.noDuplicates !== 'boolean') {
     throw new Error('No duplicates must be enabled or disabled.');
   }
@@ -102,7 +104,7 @@ export function drawPreview(
     ...snapshot,
     revision: snapshot.revision + 1,
     history: [draw, ...snapshot.history],
-    activeDraw: { draw, startedAt: now, durationMs: DRAW_DURATION_MS },
+    activeDraw: { draw, startedAt: now, durationMs: snapshot.config.drawDurationMs ?? DRAW_DURATION_MS },
   };
 }
 

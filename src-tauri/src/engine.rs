@@ -3,6 +3,9 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 
 pub const DRAW_DURATION_MS: u64 = 1_600;
+fn default_draw_duration() -> u64 {
+    DRAW_DURATION_MS
+}
 const MAX_SAMPLES: u32 = 1_000_000;
 const MAX_DRAW_COUNT: u32 = 500;
 
@@ -12,6 +15,8 @@ pub struct Config {
     pub total_samples: u32,
     pub draw_count: u32,
     pub no_duplicates: bool,
+    #[serde(default = "default_draw_duration")]
+    pub draw_duration_ms: u64,
 }
 
 impl Default for Config {
@@ -20,12 +25,16 @@ impl Default for Config {
             total_samples: 100,
             draw_count: 10,
             no_duplicates: true,
+            draw_duration_ms: DRAW_DURATION_MS,
         }
     }
 }
 
 impl Config {
     pub fn validate(&self) -> Result<(), String> {
+        if !(1000..=30000).contains(&self.draw_duration_ms) {
+            return Err("Draw duration must be between 1 and 30 seconds.".into());
+        }
         if !(1..=MAX_SAMPLES).contains(&self.total_samples) {
             return Err("Total Samples must be between 1 and 1,000,000.".into());
         }
@@ -210,7 +219,7 @@ impl Snapshot {
         self.active_draw = Some(ActiveDraw {
             draw,
             started_at: now,
-            duration_ms: DRAW_DURATION_MS,
+            duration_ms: self.config.draw_duration_ms,
         });
         Ok(())
     }
@@ -238,6 +247,26 @@ impl Snapshot {
 #[cfg(test)]
 mod tests {
     #[test]
+    fn duration_migration_and_selected_timing() {
+        let old: super::Config =
+            serde_json::from_str(r#"{"totalSamples":100,"drawCount":10,"noDuplicates":true}"#)
+                .unwrap();
+        assert_eq!(old.draw_duration_ms, 1600);
+        let mut state = super::Snapshot::new("duration".into());
+        state.config.draw_duration_ms = 10000;
+        state.draw(&mut rng(), 0).unwrap();
+        assert_eq!(state.active_draw.unwrap().duration_ms, 10000);
+        for value in [0, 999, 30001] {
+            assert!(super::Config {
+                draw_duration_ms: value,
+                ..Default::default()
+            }
+            .validate()
+            .is_err());
+        }
+    }
+
+    #[test]
     fn fresh_install_defaults() {
         let config = super::Config::default();
         assert_eq!(config.total_samples, 100);
@@ -263,6 +292,7 @@ mod tests {
             total_samples: 20,
             draw_count: 5,
             no_duplicates: true,
+            draw_duration_ms: DRAW_DURATION_MS,
         };
         for now in 0..4 {
             state.draw(&mut rng(), now).unwrap();
@@ -294,6 +324,7 @@ mod tests {
             total_samples: 1,
             draw_count: 5,
             no_duplicates: false,
+            draw_duration_ms: DRAW_DURATION_MS,
         };
         state.draw(&mut rng(), 0).unwrap();
         assert_eq!(state.history[0].numbers, [1; 5]);
@@ -309,6 +340,7 @@ mod tests {
             total_samples: 2,
             draw_count: 10,
             no_duplicates: false,
+            draw_duration_ms: DRAW_DURATION_MS,
         };
         state.draw(&mut rng(), 0).unwrap();
         finish(&mut state);
@@ -405,6 +437,7 @@ mod tests {
             total_samples: MAX_SAMPLES,
             draw_count: MAX_DRAW_COUNT,
             no_duplicates: true,
+            draw_duration_ms: DRAW_DURATION_MS,
         };
         state.draw(&mut rng(), 0).unwrap();
         let numbers = &state.history[0].numbers;
