@@ -21,6 +21,7 @@ jobs:
       - uses: swatinem/rust-cache@v2
         with:
           workspaces: src-tauri -> target
+          cache-on-failure: true
       - run: npm ci
       - run: npm test
       - run: cargo test --manifest-path src-tauri/Cargo.toml --locked
@@ -29,7 +30,7 @@ jobs:
         shell: bash
         run: |
           APP=src-tauri/target/universal-apple-darwin/release/bundle/macos/WhizReveal.app
-          lipo -verify_arch arm64 x86_64 "$APP/Contents/MacOS/whizreveal"
+          lipo "$APP/Contents/MacOS/whizreveal" -verify_arch arm64 x86_64
           codesign --verify --deep --strict "$APP"
           test -f "$APP/Contents/Resources/fonts/Aeonik-Regular.ttf"
           plutil -lint "$APP/Contents/Info.plist"
