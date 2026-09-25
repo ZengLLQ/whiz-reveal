@@ -87,3 +87,11 @@ The Full History display now labels each section with its ordinal draw name, suc
 - Seven isolated NSIS font-hook scenarios passed: fresh install, idempotent reinstall, upgrade retention, normal uninstall, existing user registration, existing Regular-family alias, and an existing reserved filename. Font hashes matched the supplied files; the test registry tree was removed afterwards. These checks used a unique test registry tree and workspace directory, not production font registry entries or an existing WhizReveal installation.
 
 Physical multi-monitor placement and a complete installation on a second computer have not been exercised for this release. The archived PDF and Figma screens describe earlier versions; the built-in three-language guide describes 1.2.0.
+
+## v1.3.0 sound and macOS
+
+- Frontend: 58 tests passed, including restored-history silence, completion deduplication, reset cancellation, bounded shuffle scheduling, immediate mute cancellation and unavailable audio hardware.
+- TypeScript build and production Vite build passed. Windows NSIS build passed; 16 native Rust tests passed on Windows.
+- Browser preview on an isolated origin: draw completed, sound toggle changed state, mute persisted after reload, and toolbar wrapped without clipping at 150% text on a narrow viewport. No physical-speaker listening test has been performed.
+- Updated Figma controller at 100% and 150%, centered history headings, guide chooser and sound behavior notes; screenshots reviewed. Aeonik is not offered by the connected Figma service, so Figma retains its previous Inter font while the app uses embedded Aeonik.
+- macOS builds and tests run in `.github/workflows/macos.yml`; see the workflow result for build evidence. Real-Mac audio, external-monitor and Gatekeeper acceptance remains separate from compilation. The package is ad-hoc signed and not notarized.

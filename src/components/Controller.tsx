@@ -171,4 +171,3 @@ export function Controller({ snapshot, actions, busy, displayOpen, displayBusy }
 export function ErrorToast({ message, onClose }: { message: string | null; onClose: () => void }) {
   return <AnimatePresence>{message && <motion.div className="error-toast" role="alert" initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ opacity: 0 }}><span>{message}</span><button onClick={onClose} aria-label="Dismiss error"><X size={17} /></button></motion.div>}</AnimatePresence>;
 }
-

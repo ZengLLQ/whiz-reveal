@@ -118,4 +118,3 @@ See [the architecture notes](docs/architecture.md) for the project layout and IP
 The controller plays a click, shuffle ticks, and a result chime. Use **Sound on/off** in the top bar to mute or enable all cues. Sound is synthesized offline and never duplicated by the audience display. The preference is saved locally.
 
 See [macOS build and signing notes](docs/macos.md) for the universal Intel / Apple Silicon package.
-
