@@ -97,3 +97,14 @@ Physical multi-monitor placement and a complete installation on a second compute
 - macOS builds and tests run in `.github/workflows/macos.yml`; see the workflow result for build evidence. Real-Mac audio, external-monitor and Gatekeeper acceptance remains separate from compilation. The package is ad-hoc signed and not notarized.
 
 macOS universal build [36090281684](https://github.com/ZengLLQ/WhizReveal/actions/runs/36090281684) passed on commit `16f5614`: 58 frontend tests, native Rust tests, universal app/DMG build, arm64 + x86_64 architecture check, strict ad-hoc signature check, embedded Aeonik resource check, and Info.plist validation. Downloaded artifacts are published with the v1.3.0 release. This does not replace real-device acceptance testing.
+
+## Session PDF export, 1.4.0
+
+- TypeScript checking, production frontend build, 62 frontend tests, and 20 Rust tests passed on Windows.
+- The PDF pagination test preserves chronological draw order, repeated numbers, continuation offsets, and every recorded position without mutating the session.
+- All pages of the one-page example and five-page stress report were rendered and visually inspected. Text extraction independently verified all 503 stress-test results, including repeated values and 1,000,000, in their original order.
+- The isolated browser preview disabled export for an empty history and successfully downloaded a PDF after a completed draw. The original native session was not modified.
+- Rust tests cover safe suggested filenames, PDF payload validation, extension handling, complete replacement, and preservation of existing files when saving fails. Native export is restricted to the controller and uses a user-selected path.
+- Aeonik fonts are embedded from bundled local assets. The Content Security Policy permits same-origin font reads while preserving the existing external connection restrictions.
+
+Native Save-dialog interaction, real-Mac Gatekeeper acceptance, and physical multi-monitor behavior are not claimed as tested by the automated checks.

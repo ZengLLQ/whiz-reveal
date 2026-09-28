@@ -8,6 +8,7 @@ import { RevealCanvas } from './RevealCanvas';
 import { ImmersiveStage } from './ImmersiveStage';
 import { ControllerTextSize } from './ControllerTextSize';
 import { ManualGuide } from './ManualGuide';
+import { HistoryExportButton } from './HistoryExportButton';
 import { useControllerTextSize } from '../hooks/useControllerTextSize';
 import '../controller-typography.css';
 import { useDrawSound } from '../hooks/useDrawSound';
@@ -97,7 +98,7 @@ function Parameters({ snapshot, actions, busy, onDirtyChange }: { snapshot: Snap
   );
 }
 
-function HistorySidebar({ snapshot }: { snapshot: Snapshot }) {
+function HistorySidebar({ snapshot, busy }: { snapshot: Snapshot; busy: boolean }) {
   const completed = snapshot.history.filter((draw) => draw.id !== snapshot.activeDraw?.draw.id);
   return (
     <aside className="history-sidebar">
@@ -110,6 +111,7 @@ function HistorySidebar({ snapshot }: { snapshot: Snapshot }) {
           </motion.div>
         )) : <div className="empty-history"><History size={20} strokeWidth={1.3} /><p>No draws yet.</p><span>Your results will appear here.</span></div>}
       </div>
+      <HistoryExportButton snapshot={snapshot} busy={busy} />
       <div className="history-bottom"><span className="status-dot" />Saved locally</div>
     </aside>
   );
@@ -164,11 +166,11 @@ export function Controller({ snapshot, actions, busy, displayOpen, displayBusy }
           </button>
           <div className="draw-note">{exhausted ? remaining === 0 ? 'Start a new session to draw again.' : `Choose ${remaining} or fewer numbers, or start a new session.` : drawing ? 'A moment of possibility.' : <><kbd>Enter</kbd><span>to draw · when controls are unfocused</span></>}</div>
         </section>
-        <HistorySidebar snapshot={snapshot} />
+        <HistorySidebar snapshot={snapshot} busy={busy} />
       </main>
       <footer className="app-footer"><span className="footer-note"><span className="status-dot" />{!isNative ? 'Browser preview' : displayOpen ? 'Display connected' : 'Ready when you are'}</span><button className="text-button" disabled={drawing || busy} onClick={() => setShowReset(true)}><RotateCcw size={13} />New session</button></footer>
       <dialog ref={dialogRef} className="reset-dialog" onCancel={() => setShowReset(false)} onClose={() => setShowReset(false)}>
-        <div className="dialog-icon"><CircleHelp size={24} /></div><h2>Start fresh?</h2><p>This clears the current session’s draw history and makes every number available again. Your presentation settings stay the same.</p><div className="dialog-actions"><button className="secondary-button" autoFocus onClick={() => setShowReset(false)}>Keep session</button><button className="primary-button" onClick={() => { setShowReset(false); void actions.resetSession(); }}>New session</button></div>
+        <div className="dialog-icon"><CircleHelp size={24} /></div><h2>Start fresh?</h2><p>This clears the current session’s draw history and makes every number available again. Your presentation settings stay the same.</p>{snapshot.history.length > 0 && <p>To keep these results, choose Keep session and use Export PDF in Session history before starting fresh.</p>}<div className="dialog-actions"><button className="secondary-button" autoFocus onClick={() => setShowReset(false)}>Keep session</button><button className="primary-button" onClick={() => { setShowReset(false); void actions.resetSession(); }}>New session</button></div>
       </dialog>
     </div>
   );

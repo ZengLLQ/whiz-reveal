@@ -34,10 +34,18 @@ Aeonik Regular, Medium, and Bold are bundled with the application. CJK glyphs fa
 
 Three.js is loaded asynchronously. Rendering is capped at 30 frames per second and 1.5 device pixel ratio, suspended in a hidden document or offscreen canvas, and rendered without animation for reduced-motion users. A static CSS sculpture remains if WebGL is unavailable or its context is lost. Geometry, materials, renderer resources, listeners, and observers are released on unmount. Number results keep a stable reading plane.
 
-Drawing uses approximately 1.6 seconds of rapid 2D number cycling, followed by a staggered spring reveal. The depth treatment does not turn this into a slot-machine animation. Reduced-motion preferences suppress decorative movement and entrance animation, using a quiet placeholder during the draw before showing the committed result.
+Drawing uses the selected duration (1–30 seconds, initially 1.6 seconds) of rapid 2D number cycling, followed by a staggered spring reveal. The depth treatment does not turn this into a slot-machine animation. Reduced-motion preferences suppress decorative movement and entrance animation, using a quiet placeholder during the draw before showing the committed result.
 
 The [verification notes](verification.md) distinguish completed checks from acceptance work for the updated interface.
 
 ## v1.3.1
 
 The audience Display now shares the locally rendered 3D sculpture, behind current results and full history. Its decorative layer stays fixed while numbers scroll, uses the existing palette, and inherits reduced-motion and WebGL fallback support. Fresh sessions without saved data start at 100 total samples and 10 winners per draw. Existing saved configuration remains unchanged.
+
+## Session reports, 1.4.0
+
+The history sidebar offers a quiet Export PDF action. Reports use A4 portrait pages, the same five-color palette, embedded Aeonik typography, a compact dark masthead, and centered result chips on a light background. Summary figures appear once; continued pages retain session identification, draw headings, and page numbering. All report timestamps explicitly use UTC.
+
+The built-in guide uses plain descriptive section titles without numeric prefixes in all three languages. Session guidance explains when and how to export before resetting.
+
+A separate [Canva design reference](https://canva.link/g9sxk3xfj3dk8f5) documents the report direction. Runtime exports are generated locally and do not depend on Canva or an internet connection.

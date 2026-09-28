@@ -29,7 +29,7 @@ The Tauri command starts Vite and opens **WhizReveal - Controller**. The initial
 1. Enter **Total Samples** and **Number of Draws**, then choose **Apply settings**. A sample count of 250 creates the inclusive pool `1–250`; the draw count is the number of winners in one action.
 2. Set **No Duplicates**. When enabled, every number already drawn during the current session is excluded, including results drawn earlier while the toggle was off. When disabled, each position is sampled with replacement: repeats can occur both within one draw and across draws.
 3. Choose **Launch display**. The native app uses the first available monitor other than the controller's current monitor, falling back to the current monitor when no other display is available. Configure Windows to extend the desktop for a separate audience screen. The button changes to **Close display**; click it again to close the audience window while preserving the session. Reopen it at any time. Closing the audience window manually also resets the button.
-4. Choose **Draw**, or press **Enter** with controls unfocused. Decorative numbers cycle for approximately 1.6 seconds, then the committed winners appear with a staggered spring reveal. Both windows receive the same result.
+4. Choose **Draw**, or press **Enter** with controls unfocused. Decorative numbers cycle for the selected **Draw duration** (1–30 seconds; initially 1.6 seconds), then the committed winners appear with a staggered spring reveal. Both windows receive the same result.
 5. Use **Current Draw** / **Full History** and the **Display scale** slider to update the audience screen live. Scale ranges from 50% to 200%. The controller preview remains compact; large draws and history can be scrolled vertically.
 6. Use the controller's **A−** and **A+** text controls to reduce or enlarge interface text from 90% to 150% in 10% steps. Select the percentage to reset to 100%. This preference is saved on the current device and changes controller text independently of the audience display scale and preview numbers.
 
@@ -48,6 +48,14 @@ The display canvas has no app branding or main title. Full history groups result
 The controller pairs quiet controls with an interactive 3D sculpture inspired by [Lusion](https://lusion.co/). The sculpture recedes when results are present. It is rendered locally with Three.js, respects reduced motion, pauses when offscreen, and has a static fallback when WebGL is unavailable. Compact utility actions use uppercase; labels and guide text use sentence case. Scrollbars use the same palette. See the [design notes](docs/design.md).
 
 **Aeonik** is the default app font. Regular, Medium, and Bold are bundled locally, so the installed and portable apps render without font downloads. The setup installer also registers these fonts for the current Windows user, preserving existing Aeonik installations. Chinese text uses Windows glyph fallbacks. See [font provenance and installation](docs/font-license.md).
+
+## Export a session as PDF
+
+Choose **Export PDF** below **Session history**, then select where to save the report. The button becomes available after a draw finishes. Reports include the session ID, sample count, number of draws, UTC timestamps, and every result grouped by **1st Draw**, **2nd Draw**, and so on. Long draws continue automatically across A4 pages; number order and repeated results are preserved.
+
+PDFs are generated offline with embedded Aeonik fonts. The native Windows and macOS app opens a Save dialog; the browser preview downloads the file. Canceling the dialog leaves the session unchanged. Each export captures the completed results at the time you click the button.
+
+**Export before choosing New session.** The app stores the current session, not an archive of previous sessions. Keep one PDF per session to retain past results. See the [sample session report](output/pdf/WhizReveal-Session-Report-Sample.pdf).
 
 ## Session behavior
 
