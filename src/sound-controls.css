@@ -1,0 +1,16 @@
+.sound-controls { display:flex; align-items:center; gap:3px; }
+.sound-settings-trigger { display:grid; place-items:center; width:32px; height:38px; color:#5D6F82; background:none; border:0; border-radius:20px; }
+.sound-settings-trigger:hover { color:#E7EEF5; background:#171C22; }
+.sound-dialog { width:min(420px, calc(100vw - 36px)); max-height:calc(100dvh - 40px); overflow:auto; padding:28px; border:1px solid #2A333D; border-radius:22px; background:#171C22; color:#E7EEF5; }
+.sound-dialog::backdrop { background:#0B0D10; opacity:.85; }
+.sound-dialog-heading { display:flex; justify-content:space-between; align-items:flex-start; gap:20px; margin-bottom:30px; }
+.sound-dialog-heading h2 { font-size:25px; letter-spacing:-.05em; font-weight:400; margin:7px 0 0; }
+.sound-dialog-heading button { display:grid; place-items:center; width:32px; height:32px; border:1px solid #2A333D; border-radius:50%; color:#E7EEF5; background:none; }
+.sound-dialog p { color:#5D6F82; font-size:12px; line-height:1.6; margin:5px 0 24px; }
+.sound-dialog-heading p { margin:0; }
+.sound-dialog label { display:flex; justify-content:space-between; font-size:14px; margin-bottom:12px; }
+.sound-dialog output { color:#5D6F82; }
+.sound-dialog input[type=range] { width:100%; accent-color:#E7EEF5; }
+.sound-dialog-actions { display:flex; justify-content:space-between; gap:12px; margin-top:28px; }
+.sound-dialog-actions button { display:flex; align-items:center; gap:8px; font-size:12px; }
+.sound-dialog .sound-output-note { margin:22px 0 0; font-size:11px; }

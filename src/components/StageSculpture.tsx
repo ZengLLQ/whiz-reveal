@@ -1,139 +1,115 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import { useReducedMotion } from 'framer-motion';
+import type { Snapshot } from '../lib/types';
 
-type Pointer = RefObject<{ x: number; y: number }>;
-
-/** Local geometry and palette shading; no model, texture, or network request. */
-export function StageSculpture({ pointer }: { pointer: Pointer }) {
+type Pointer = RefObject<{ x: number; y: number; drag: number }>;
+export function StageSculpture({ pointer, snapshot, welcome = false, entering = false, presentation = false }: {
+  pointer: Pointer; snapshot?: Snapshot; welcome?: boolean; entering?: boolean; presentation?: boolean;
+}) {
   const host = useRef<HTMLDivElement>(null);
   const reducedMotion = useReducedMotion();
   const [ready, setReady] = useState(false);
-
+  const [source, setSource] = useState('fallback');
+  const state = useRef({ snapshot, entering }); state.current = { snapshot, entering };
   useEffect(() => {
     const container = host.current;
     if (!container) return;
     let disposed = false;
-    let cleanup: (() => void) | undefined;
+    const abort = new AbortController();
+    let cleanup = () => {};
     setReady(false);
-
-    void import('three').then((THREE) => {
+    void Promise.all([import('three'), import('three/addons/loaders/GLTFLoader.js')]).then(async ([T, { GLTFLoader }]) => {
       if (disposed) return;
-      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'low-power' });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
-      const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 30);
-      camera.position.z = 7.7;
-      const geometry = new THREE.TorusKnotGeometry(1.05, 0.35, 160, 24, 2, 3);
-      const material = new THREE.ShaderMaterial({
-        uniforms: {
-          ink: { value: new THREE.Vector3(11 / 255, 13 / 255, 16 / 255) },
-          panel: { value: new THREE.Vector3(23 / 255, 28 / 255, 34 / 255) },
-          edge: { value: new THREE.Vector3(42 / 255, 51 / 255, 61 / 255) },
-          muted: { value: new THREE.Vector3(93 / 255, 111 / 255, 130 / 255) },
-          paper: { value: new THREE.Vector3(231 / 255, 238 / 255, 245 / 255) },
-        },
-        vertexShader: `
-          varying vec3 surfaceNormal;
-          varying vec3 viewDirection;
-          void main() {
-            vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
-            surfaceNormal = normalize(normalMatrix * normal);
-            viewDirection = normalize(-viewPosition.xyz);
-            gl_Position = projectionMatrix * viewPosition;
-          }
-        `,
-        fragmentShader: `
-          uniform vec3 ink, panel, edge, muted, paper;
-          varying vec3 surfaceNormal;
-          varying vec3 viewDirection;
-          void main() {
-            vec3 normal = normalize(surfaceNormal);
-            vec3 view = normalize(viewDirection);
-            vec3 light = normalize(vec3(-0.7, 1.0, 1.2));
-            float diffuse = dot(normal, light) * 0.5 + 0.5;
-            float rim = pow(1.0 - max(dot(normal, view), 0.0), 3.0);
-            float gloss = pow(max(dot(reflect(-light, normal), view), 0.0), 30.0);
-            vec3 color = mix(ink, panel, smoothstep(0.0, 0.3, diffuse));
-            color = mix(color, edge, smoothstep(0.25, 0.6, diffuse));
-            color = mix(color, muted, smoothstep(0.5, 0.88, diffuse));
-            color = mix(color, paper, smoothstep(0.87, 1.0, diffuse) * 0.8);
-            color = mix(color, paper, min(0.85, gloss * 0.7 + rim * 0.3));
-            gl_FragColor = vec4(color, 1.0);
-          }
-        `,
-      });
-      const sculpture = new THREE.Mesh(geometry, material);
-      sculpture.rotation.set(0.4, -0.35, -0.35);
-      scene.add(sculpture);
+      const renderer = new T.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'low-power' });
+      renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+      renderer.setClearColor('#0B0D10', 0);
+      renderer.outputColorSpace = T.SRGBColorSpace;
+      renderer.toneMapping = T.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.3;
       container.appendChild(renderer.domElement);
-      let frame = 0;
-      let previous = 0;
-      let visible = true;
-      let lost = false;
-      let elapsed = 0;
-
-      function render(time: number) {
-        frame = 0;
-        if (disposed || lost || !visible || document.hidden) return;
-        if (time - previous >= 1000 / 30 || reducedMotion) {
-          const delta = Math.min((time - previous) / 1000, 0.05);
-          previous = time;
-          if (!reducedMotion) {
-            elapsed += delta;
-            sculpture.rotation.x += (0.4 + pointer.current.y * 0.45 - sculpture.rotation.x) * 0.055;
-            sculpture.rotation.y += (-0.35 + Math.sin(elapsed * 0.22) * 0.35 + pointer.current.x * 0.75 - sculpture.rotation.y) * 0.055;
-            sculpture.rotation.z = -0.35 + Math.sin(elapsed * 0.18) * 0.08;
-            sculpture.position.y = Math.sin(elapsed * 0.6) * 0.055;
-          }
-          renderer.render(scene, camera);
-        }
-        if (!reducedMotion) frame = requestAnimationFrame(render);
-      }
-      function resume() {
-        cancelAnimationFrame(frame);
-        frame = requestAnimationFrame(render);
-      }
-      const resize = new ResizeObserver(() => {
-        const { width, height } = container.getBoundingClientRect();
-        if (!width || !height) return;
-        renderer.setSize(width, height);
-        camera.aspect = width / height;
-        camera.position.z = camera.aspect < 1 ? 7.7 / camera.aspect : 7.7;
-        camera.updateProjectionMatrix();
-        resume();
+      const scene = new T.Scene();
+      scene.fog = new T.FogExp2('#0B0D10', .022);
+      const camera = new T.PerspectiveCamera(40, 1, .1, 70);
+      const sculpture = new T.Group(); scene.add(sculpture);
+      const ambient = new T.HemisphereLight('#E7EEF5', '#171C22', 2.4); scene.add(ambient);
+      const key = new T.DirectionalLight('#E7EEF5', 5); key.position.set(-3, 5, 5); scene.add(key);
+      const rim = new T.PointLight('#E7EEF5', 35, 18); rim.position.set(2, 2, -2); scene.add(rim);
+      const fill = new T.DirectionalLight('#5D6F82', 3); fill.position.set(4, 1, 4); scene.add(fill);
+      const disposeTree = (root: import('three').Object3D) => root.traverse(o => {
+        if (o instanceof T.Mesh) { o.geometry.dispose(); (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => m.dispose()); }
       });
-      const visibility = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; resume(); });
-      const onLost = (event: Event) => { event.preventDefault(); lost = true; cancelAnimationFrame(frame); setReady(false); };
-      const onRestored = () => { lost = false; setReady(true); resume(); };
-      renderer.domElement.addEventListener('webglcontextlost', onLost);
-      renderer.domElement.addEventListener('webglcontextrestored', onRestored);
-      document.addEventListener('visibilitychange', resume);
-      resize.observe(container);
-      visibility.observe(container);
-      setReady(true);
-      resume();
-      cleanup = () => {
-        cancelAnimationFrame(frame);
-        resize.disconnect();
-        visibility.disconnect();
-        document.removeEventListener('visibilitychange', resume);
-        renderer.domElement.removeEventListener('webglcontextlost', onLost);
-        renderer.domElement.removeEventListener('webglcontextrestored', onRestored);
-        geometry.dispose();
-        material.dispose();
-        renderer.dispose();
-        renderer.forceContextLoss();
-        renderer.domElement.remove();
+      const fallback = new T.Group(); sculpture.add(fallback);
+      const metal = new T.MeshStandardMaterial({ color: '#5D6F82', metalness: .65, roughness: .28 });
+      const pearl = new T.MeshStandardMaterial({ color: '#E7EEF5', emissive: '#5D6F82', emissiveIntensity: .5, metalness: .3, roughness: .3 });
+      const shape = new T.Shape();
+      const points = [[-1.5,1.3],[-.98,-1.3],[-.5,-1.3],[0,.18],[.5,-1.3],[.98,-1.3],[1.5,1.3],[1.02,1.3],[.7,-.5],[.22,.8],[-.22,.8],[-.7,-.5],[-1.02,1.3]];
+      points.forEach(([x,y],i) => i ? shape.lineTo(x,y) : shape.moveTo(x,y)); shape.closePath();
+      const w = new T.Mesh(new T.ExtrudeGeometry(shape,{depth:.3,bevelEnabled:true,bevelThickness:.04,bevelSize:.04,bevelSegments:3,steps:1}),metal);
+      w.name = 'W_Monolith'; w.visible = !presentation; fallback.add(w);
+      for(let i=0;i<2;i++) { const r = new T.Mesh(new T.TorusGeometry(2.1+i*.55,.018,10,96),pearl); r.name=i?'Orbit_Outer':'Orbit_Inner'; r.rotation.set(.25+i*.4,i*.4,0); fallback.add(r); }
+      let rings: import('three').Object3D[] = fallback.children.filter(o=>o.name.startsWith('Orbit'));
+      let ringRest = rings.map(r=>r.quaternion.clone());
+      let frame = 0, previous = 0, elapsed = 0, visible = true, lost = false, lowQuality = false, slowFrames = 0;
+      let oldActive: string | null = null, revealAt = -Infinity, entranceAt = -1;
+      let previousSession = state.current.snapshot?.sessionId;
+      const resize = () => { const {width,height}=container.getBoundingClientRect(); if(!width||!height)return;renderer.setSize(width,height);camera.aspect=width/height;camera.updateProjectionMatrix(); };
+      const render = (time: number) => {
+        frame = 0;
+        if(disposed||lost||!visible||document.hidden)return;
+        const gap=previous ? time-previous : 16;
+        previous=time;
+        const delta=Math.min(gap/1000,.05); elapsed+=delta;
+        if(gap>45) slowFrames++; else slowFrames=Math.max(0,slowFrames-1);
+        if(slowFrames>40&&!lowQuality) { lowQuality=true; renderer.setPixelRatio(1); resize(); container.dataset.graphicsQuality='balanced'; }
+        const {snapshot:s,entering:enter}=state.current;
+        const active=s?.activeDraw;
+        const activeKey=active ? `${s?.sessionId}/${active.draw.id}` : null;
+        if(s?.sessionId!==previousSession) { oldActive=null; revealAt=-Infinity;previousSession=s?.sessionId; }
+        if(oldActive&&!activeKey&&s?.history.some(d=>`${s.sessionId}/${d.id}`===oldActive))revealAt=time;
+        oldActive=activeKey;
+        const progress=active?Math.min(1,Math.max(0,(Date.now()-active.startedAt)/active.durationMs)):0;
+        const pulse=Math.max(0,1-(time-revealAt)/1400);
+        if(enter&&entranceAt<0)entranceAt=time;
+        const entry=enter ? Math.min(1,(time-entranceAt)/4000) : 0;
+        const motion = reducedMotion ? 0 : 1;
+        const breathe=Math.sin(elapsed*.45)*.04*motion;
+        sculpture.rotation.y += ((pointer.current.x*.32+pointer.current.drag)*motion-sculpture.rotation.y)*.065;
+        sculpture.rotation.x += (pointer.current.y*.11*motion-sculpture.rotation.x)*.065;
+        sculpture.position.y=breathe;
+        rings.forEach((ring,i)=>{ring.quaternion.copy(ringRest[i]); if(motion)ring.rotateY(elapsed*(.08+i*.045)+progress*2.5+entry*1.2);});
+        const baseDistance=camera.aspect<.95?11.5:9.8;
+        camera.position.set(.6+pointer.current.x*.35*motion,1.25-pointer.current.y*.25*motion,baseDistance-entry*2.8*motion-progress*.25*motion);
+        camera.lookAt(0,-.1,0);
+        key.intensity=5+progress*1.8+pulse*2*motion;
+        rim.intensity=35+progress*22+pulse*28*motion;
+        renderer.render(scene,camera);
+        if(!reducedMotion)frame=requestAnimationFrame(render);
       };
-    }).catch(() => {
-      // A WebView without WebGL keeps the CSS sculpture and every raffle control.
-      if (!disposed) setReady(false);
-    });
-    return () => { disposed = true; cleanup?.(); };
-  }, [pointer, reducedMotion]);
-
-  return <div className={`stage-sculpture ${ready ? 'sculpture-ready' : ''}`} aria-hidden="true">
-    <div className="sculpture-fallback"><i /><i /><i /></div>
-    <div className="sculpture-webgl" ref={host} />
+      const resume=()=>{cancelAnimationFrame(frame);previous=0;frame=requestAnimationFrame(render);};
+      const observer=new ResizeObserver(()=>{resize();resume();});observer.observe(container);
+      const intersection=new IntersectionObserver(([entry])=>{visible=entry.isIntersecting;resume();});intersection.observe(container);
+      const onLost=(event:Event)=>{event.preventDefault();lost=true;setReady(false);cancelAnimationFrame(frame);};
+      const onRestored=()=>{lost=false;setReady(true);resume();};
+      renderer.domElement.addEventListener('webglcontextlost',onLost);
+      renderer.domElement.addEventListener('webglcontextrestored',onRestored);
+      document.addEventListener('visibilitychange',resume);
+      cleanup=()=>{cancelAnimationFrame(frame);observer.disconnect();intersection.disconnect();document.removeEventListener('visibilitychange',resume);renderer.domElement.removeEventListener('webglcontextlost',onLost);renderer.domElement.removeEventListener('webglcontextrestored',onRestored);disposeTree(scene);renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove();};
+      container.dataset.graphicsQuality='adaptive';setReady(true);resize();resume();
+      try {
+        const response=await fetch('/models/whizreveal-orbital.glb',{signal:abort.signal});if(!response.ok)throw new Error('Model unavailable');
+        const gltf=await new GLTFLoader().parseAsync(await response.arrayBuffer(),'');
+        if(disposed){disposeTree(gltf.scene);return;}
+        const removable: import('three').Object3D[]=[];
+        gltf.scene.traverse(o=>{ if(o instanceof T.Light||o instanceof T.Camera)removable.push(o); if(o.name==='W_Monolith')o.visible=!presentation; });
+        removable.forEach(o=>o.removeFromParent());
+        sculpture.remove(fallback);disposeTree(fallback);sculpture.add(gltf.scene);
+        rings=[];gltf.scene.traverse(o=>{if(o.name.startsWith('Orbit_'))rings.push(o);});ringRest=rings.map(r=>r.quaternion.clone());
+        setSource('higgsfield');resume();
+      } catch { /* The locally constructed W stays interactive if the asset is unavailable. */ }
+    }).catch(()=>{if(!disposed)setReady(false);});
+    return ()=>{disposed=true;abort.abort();cleanup();};
+  },[pointer,reducedMotion,welcome,presentation]);
+  return <div className={`stage-sculpture ${ready?'sculpture-ready':''}`} aria-hidden="true" data-scene-source={source}>
+    <div className="sculpture-fallback"><i/><i/><i/></div><div className="sculpture-webgl" ref={host}/>
   </div>;
 }

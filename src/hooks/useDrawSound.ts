@@ -1,29 +1,24 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { DrawSound, DrawSoundTracker } from '../lib/draw-sound';
+import { getDrawSound, DrawSoundTracker, readSoundPreferences, saveSoundPreferences } from '../lib/draw-sound';
 import type { Snapshot } from '../lib/types';
-
-const key = 'whizreveal.sound-enabled';
-export function useDrawSound(snapshot: Snapshot) {
-  const [enabled, setEnabled] = useState(() => {
-    try { return localStorage.getItem(key) !== 'false'; } catch { return true; }
-  });
-  const sound = useRef<DrawSound | null>(null);
-  const tracker = useRef(new DrawSoundTracker());
-  const engine = useCallback(() => sound.current ??= new DrawSound(), []);
-  useEffect(() => {
-    const cue = tracker.current.update(snapshot);
-    if (!enabled) { sound.current?.stop(); return; }
-    if (cue === 'shuffle' && snapshot.activeDraw) engine().shuffle(snapshot.activeDraw.startedAt, snapshot.activeDraw.durationMs);
-    else if (cue === 'reveal') engine().reveal();
-    else sound.current?.stop();
-  }, [snapshot, enabled, engine]);
-  useEffect(() => () => { sound.current?.dispose(); sound.current = null; }, []);
-  const click = useCallback(() => { if (enabled) engine().click(); }, [enabled, engine]);
-  function toggle() {
-    const next = !enabled;
-    if (next) engine().unlock(); else sound.current?.stop();
-    setEnabled(next);
-    try { localStorage.setItem(key, String(next)); } catch { /* Private storage. */ }
-  }
-  return { enabled, toggle, click };
+export function useDrawSound(snapshot:Snapshot){
+  const [preferences,setPreferences]=useState(readSoundPreferences);
+  const tracker=useRef(new DrawSoundTracker());
+  const session=useRef(snapshot.sessionId);
+  const engine=getDrawSound();
+  useEffect(()=>{
+    const cue=tracker.current.update(snapshot);
+    if(session.current!==snapshot.sessionId){engine.stop();session.current=snapshot.sessionId;}
+    if(!preferences.enabled){engine.stop();return;}
+    engine.setVolumes(preferences.music,preferences.effects);
+    if(cue==='shuffle'&&snapshot.activeDraw)engine.shuffle(snapshot.activeDraw.startedAt,snapshot.activeDraw.durationMs);
+    else if(cue==='reveal')engine.reveal();
+  },[snapshot,preferences,engine]);
+  const click=useCallback(()=>{if(preferences.enabled)engine.click();},[preferences.enabled,engine]);
+  function update(p:typeof preferences){setPreferences(p);saveSoundPreferences(p);engine.setVolumes(p.music,p.effects);}
+  function toggle(){const enabled=!preferences.enabled;update({...preferences,enabled});if(enabled)engine.unlock();else engine.stop();}
+  return {enabled:preferences.enabled,toggle,click,musicVolume:preferences.music,effectsVolume:preferences.effects,
+    setMusicVolume:(music:number)=>update({...preferences,music}),setEffectsVolume:(effects:number)=>update({...preferences,effects}),
+    test:()=>{if(preferences.enabled)engine.test();}};
 }
+export type DrawSoundControls=ReturnType<typeof useDrawSound>;

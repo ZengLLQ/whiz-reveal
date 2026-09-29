@@ -6,6 +6,9 @@ import { ImmersiveStage } from './components/ImmersiveStage';
 import { RevealCanvas } from './components/RevealCanvas';
 import { isNative } from './lib/bridge';
 import { useRaffle } from './hooks/useRaffle';
+import { WelcomeScreen } from './components/WelcomeScreen';
+import { beginWelcomeAudio } from './lib/draw-sound';
+import { readSkipWelcome, writeSkipWelcome } from './lib/welcome-preferences';
 
 const isDisplay = new URLSearchParams(window.location.search).get('window') === 'display';
 
@@ -13,6 +16,12 @@ export function App() {
   const { snapshot, error, busy, displayOpen, displayBusy, actions, clearError } = useRaffle();
   const [windowError, setWindowError] = useState<string | null>(null);
   const [fullscreen, setFullscreen] = useState(isNative && isDisplay);
+  const [showWelcome, setShowWelcome] = useState(() => !isDisplay && !readSkipWelcome());
+
+  function completeWelcome(skipNextTime: boolean) {
+    writeSkipWelcome(skipNextTime);
+    setShowWelcome(false);
+  }
 
   async function setPresentationFullscreen(value: boolean) {
     try {
@@ -62,8 +71,8 @@ export function App() {
   }, [fullscreen]);
 
   return <>
-    {snapshot ? isDisplay ? <main className="display-shell"><ImmersiveStage presentation occupied={snapshot.history.length > 0 || !!snapshot.activeDraw}><RevealCanvas snapshot={snapshot} presentation /></ImmersiveStage><div className="display-tools"><button className="display-tool" aria-label={fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'} title={fullscreen ? 'Exit fullscreen (Esc)' : 'Enter fullscreen (F11)'} onClick={() => void toggleFullscreen()}>{fullscreen ? <Minimize size={18} /> : <Maximize size={18} />}</button></div></main>
-      : <Controller snapshot={snapshot} actions={actions} busy={busy} displayOpen={displayOpen} displayBusy={displayBusy} />
+    {showWelcome ? <WelcomeScreen onBegin={beginWelcomeAudio} onComplete={completeWelcome} /> : snapshot ? isDisplay ? <main className="display-shell"><ImmersiveStage presentation snapshot={snapshot} occupied={snapshot.history.length > 0 || !!snapshot.activeDraw}><RevealCanvas snapshot={snapshot} presentation /></ImmersiveStage><div className="display-tools"><button className="display-tool" aria-label={fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'} title={fullscreen ? 'Exit fullscreen (Esc)' : 'Enter fullscreen (F11)'} onClick={() => void toggleFullscreen()}>{fullscreen ? <Minimize size={18} /> : <Maximize size={18} />}</button></div></main>
+      : <Controller snapshot={snapshot} actions={actions} busy={busy} displayOpen={displayOpen} displayBusy={displayBusy} onShowWelcome={() => setShowWelcome(true)} />
       : <main className="loading-screen"><span className="loading-dot" /><span className={isDisplay ? 'sr-only' : ''}>{error ? 'Unable to load session' : 'Opening your session'}</span>{error && <button className="secondary-button" onClick={() => window.location.reload()}>Try again</button>}</main>}
     <ErrorToast message={error ?? windowError} onClose={() => { clearError(); setWindowError(null); }} />
   </>;

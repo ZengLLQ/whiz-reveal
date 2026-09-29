@@ -108,3 +108,11 @@ macOS universal build [36090281684](https://github.com/ZengLLQ/WhizReveal/action
 - Aeonik fonts are embedded from bundled local assets. The Content Security Policy permits same-origin font reads while preserving the existing external connection restrictions.
 
 Native Save-dialog interaction, real-Mac Gatekeeper acceptance, and physical multi-monitor behavior are not claimed as tested by the automated checks.
+
+## Cinematic stage and welcome, 1.5.0
+
+- 64 frontend tests, 20 native Rust tests, TypeScript checking, and a Vite production build passed on Windows.
+- The bundled Higgsfield-authored orbital GLB was loaded in the browser preview. Its fallback remains available for failed asset or WebGL loading.
+- The welcome screen was checked visually at a desktop viewport: the W scene loaded without console errors, drag interaction remained available, Enter silently reached the controller, Escape skipped the entering transition, and Skip welcome next time persisted after reload.
+- The browser audience display retained centered, readable number tiles over the dimmed sculpture. A live five-second draw completed and exposed its history as expected.
+- Sound controls expose persisted Music and Effects sliders plus Test sound. Browser automation verified interaction and mute state; it cannot establish physical loudspeaker quality.

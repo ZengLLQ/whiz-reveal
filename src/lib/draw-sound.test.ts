@@ -27,12 +27,17 @@ describe('synthesized audio scheduling', () => {
   afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
   function setup() {
     const voices: { stop: ReturnType<typeof vi.fn> }[] = [];
-    const parameter = { setValueAtTime: vi.fn(), linearRampToValueAtTime: vi.fn(), exponentialRampToValueAtTime: vi.fn() };
+    const parameter = { value: 0, setValueAtTime: vi.fn(), setTargetAtTime: vi.fn(), linearRampToValueAtTime: vi.fn(), exponentialRampToValueAtTime: vi.fn() };
+    const node = () => ({ connect: vi.fn(), disconnect: vi.fn() });
     const context = {
-      state: 'running', currentTime: 0, destination: {}, resume: vi.fn(async () => {}), close: vi.fn(async () => {}),
-      createGain: () => ({ gain: parameter, connect: vi.fn(), disconnect: vi.fn() }),
+      state: 'running', currentTime: 0, sampleRate: 100, destination: {}, resume: vi.fn(async () => {}), close: vi.fn(async () => {}),
+      createGain: () => ({ gain: parameter, ...node() }),
+      createDynamicsCompressor: () => ({ threshold: {}, knee: {}, ratio: {}, attack: {}, release: {}, ...node() }),
+      createConvolver: () => ({ buffer: null, ...node() }),
+      createBuffer: (_channels: number, length: number) => ({ getChannelData: () => new Float32Array(length) }),
+      createBiquadFilter: () => ({ type: 'lowpass', frequency: {}, ...node() }),
       createOscillator: () => {
-        const voice = { frequency: parameter, type: 'sine', start: vi.fn(), stop: vi.fn(), disconnect: vi.fn(), connect: (gain: unknown) => gain, onended: null };
+        const voice = { frequency: parameter, detune: {}, type: 'sine', start: vi.fn(), stop: vi.fn(), ...node(), onended: null };
         voices.push(voice); return voice;
       },
     };
@@ -49,10 +54,10 @@ describe('synthesized audio scheduling', () => {
     const { engine, voices } = setup(); engine.unlock();
     engine.shuffle(1000, 1600); engine.shuffle(1000, 1600);
     vi.advanceTimersByTime(1700);
-    expect(voices.length).toBeGreaterThan(10);
+    expect(voices.length).toBeGreaterThan(5);
     const count = voices.length; vi.advanceTimersByTime(2000);
     expect(voices).toHaveLength(count);
-    engine.reveal(); expect(voices).toHaveLength(count + 3);
+    engine.reveal(); expect(voices).toHaveLength(count + 7);
     engine.stop(); expect(voices.every(voice => voice.stop.mock.calls.length >= 2)).toBe(true);
   });
   it('continues without throwing when audio hardware is unavailable', () => {

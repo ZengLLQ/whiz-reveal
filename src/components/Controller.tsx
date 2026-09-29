@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowRight, Check, CircleHelp, History, Monitor, RotateCcw, Volume2, VolumeX, X } from 'lucide-react';
+import { ArrowRight, Check, CircleHelp, History, Monitor, RotateCcw, Play, X } from 'lucide-react';
 import type { Config, Snapshot } from '../lib/types';
 import { isNative } from '../lib/bridge';
 import { useRaffle } from '../hooks/useRaffle';
@@ -12,6 +12,7 @@ import { HistoryExportButton } from './HistoryExportButton';
 import { useControllerTextSize } from '../hooks/useControllerTextSize';
 import '../controller-typography.css';
 import { useDrawSound } from '../hooks/useDrawSound';
+import { SoundControls } from './SoundControls';
 
 type Actions = ReturnType<typeof useRaffle>['actions'];
 
@@ -117,7 +118,7 @@ function HistorySidebar({ snapshot, busy }: { snapshot: Snapshot; busy: boolean 
   );
 }
 
-export function Controller({ snapshot, actions, busy, displayOpen, displayBusy }: { snapshot: Snapshot; actions: Actions; busy: boolean; displayOpen: boolean; displayBusy: boolean }) {
+export function Controller({ snapshot, actions, busy, displayOpen, displayBusy, onShowWelcome }: { snapshot: Snapshot; actions: Actions; busy: boolean; displayOpen: boolean; displayBusy: boolean; onShowWelcome: () => void }) {
   const textSize = useControllerTextSize();
   const sound = useDrawSound(snapshot);
   const [showReset, setShowReset] = useState(false);
@@ -147,7 +148,7 @@ export function Controller({ snapshot, actions, busy, displayOpen, displayBusy }
       style={{ '--controller-text-scale': textSize.percentage / 100 } as CSSProperties}>
       <header className="app-topbar">
         <div className="branding"><svg className="brand-symbol" viewBox="0 0 40 40" aria-hidden="true"><path d="m7 11 6 19 7-13 7 13 6-19" /></svg><div><span className="brand-name">WhizReveal</span><span className="brand-credit">by JAYCEE 曾令强</span></div></div>
-        <div className="topbar-actions"><ControllerTextSize {...textSize} /><ManualGuide /><button className="secondary-button sound-button" onClick={sound.toggle} aria-pressed={sound.enabled} aria-label={sound.enabled ? 'Mute draw sounds' : 'Enable draw sounds'} title={sound.enabled ? 'Sound on' : 'Sound off'}>{sound.enabled ? <Volume2 size={16} /> : <VolumeX size={16} />}<span>Sound {sound.enabled ? 'on' : 'off'}</span></button><button className="secondary-button launch-button" onClick={() => void actions.toggleDisplay()} disabled={displayBusy} aria-pressed={displayOpen} aria-label={displayOpen ? 'Close display' : 'Launch display'}>
+        <div className="topbar-actions"><ControllerTextSize {...textSize} /><ManualGuide /><SoundControls sound={sound} drawing={drawing} /><button className="secondary-button launch-button" onClick={() => void actions.toggleDisplay()} disabled={displayBusy} aria-pressed={displayOpen} aria-label={displayOpen ? 'Close display' : 'Launch display'}>
           {displayOpen ? <X size={15} /> : <Monitor size={15} />}<span>{displayBusy ? 'Please wait' : displayOpen ? 'Close display' : 'Launch display'}</span>
         </button></div>
       </header>
@@ -155,7 +156,7 @@ export function Controller({ snapshot, actions, busy, displayOpen, displayBusy }
         <Parameters snapshot={snapshot} actions={actions} busy={busy} onDirtyChange={setDirty} />
         <section className="draw-workspace" aria-label="Draw controller">
           <div className="preview-heading"><span>{snapshot.presentation.view === 'current' ? 'Current draw' : 'Full history'}</span><span className="preview-indicator"><span className={`status-dot ${drawing ? 'pulsing' : ''}`} />{drawing ? 'Drawing' : 'Live preview'}</span></div>
-          <ImmersiveStage occupied={!!latest}>
+          <ImmersiveStage occupied={!!latest} snapshot={snapshot}>
             {latest ? <RevealCanvas snapshot={snapshot} /> : <div className="stage-welcome"><h1>Ready to reveal.</h1><p>Set your numbers. Let chance take over.</p></div>}
             <div className="preview-baseline"><span>{drawing ? 'Drawing in progress' : latest ? `Draw ${String(latest.id).padStart(2, '0')} · ${latest.numbers.length} ${latest.numbers.length === 1 ? 'number' : 'numbers'}` : 'WhizReveal / A moment of possibility'}</span><span className="baseline-mark" aria-hidden="true">↗</span></div>
           </ImmersiveStage>
@@ -168,7 +169,7 @@ export function Controller({ snapshot, actions, busy, displayOpen, displayBusy }
         </section>
         <HistorySidebar snapshot={snapshot} busy={busy} />
       </main>
-      <footer className="app-footer"><span className="footer-note"><span className="status-dot" />{!isNative ? 'Browser preview' : displayOpen ? 'Display connected' : 'Ready when you are'}</span><button className="text-button" disabled={drawing || busy} onClick={() => setShowReset(true)}><RotateCcw size={13} />New session</button></footer>
+      <footer className="app-footer"><span className="footer-note"><span className="status-dot" />{!isNative ? 'Browser preview' : displayOpen ? 'Display connected' : 'Ready when you are'}</span><div className="footer-actions"><button className="text-button" disabled={drawing || busy} onClick={onShowWelcome}><Play size={13} />Welcome</button><button className="text-button" disabled={drawing || busy} onClick={() => setShowReset(true)}><RotateCcw size={13} />New session</button></div></footer>
       <dialog ref={dialogRef} className="reset-dialog" onCancel={() => setShowReset(false)} onClose={() => setShowReset(false)}>
         <div className="dialog-icon"><CircleHelp size={24} /></div><h2>Start fresh?</h2><p>This clears the current session’s draw history and makes every number available again. Your presentation settings stay the same.</p>{snapshot.history.length > 0 && <p>To keep these results, choose Keep session and use Export PDF in Session history before starting fresh.</p>}<div className="dialog-actions"><button className="secondary-button" autoFocus onClick={() => setShowReset(false)}>Keep session</button><button className="primary-button" onClick={() => { setShowReset(false); void actions.resetSession(); }}>New session</button></div>
       </dialog>

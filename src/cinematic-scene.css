@@ -1,0 +1,10 @@
+.cinematic-stage { position: relative; isolation: isolate; overflow: hidden; }
+.cinematic-stage > .stage-sculpture { inset: 0; z-index: -1; }
+.cinematic-stage.stage-occupied > .stage-sculpture { opacity: .19; transform: scale(1.12) translate(17%, 0); }
+.cinematic-stage.presentation-stage > .stage-sculpture { opacity: .5; }
+.cinematic-stage.presentation-stage.stage-occupied > .stage-sculpture { opacity: .26; transform: scale(1.15); }
+.welcome-scene > .cinematic-stage.welcome-stage { background: #0B0D10; touch-action: pan-y; cursor: grab; }
+.welcome-scene > .cinematic-stage.welcome-stage:active { cursor: grabbing; }
+.welcome-scene .cinematic-stage > .stage-sculpture { inset: 0 0 0 35%; opacity: 1; transform: none; }
+@media (max-width:700px) { .welcome-scene .cinematic-stage > .stage-sculpture { inset: 5% 0 48%; } }
+@media (prefers-reduced-motion:reduce) { .cinematic-stage > .stage-sculpture { transition: none; } }

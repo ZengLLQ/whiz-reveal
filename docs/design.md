@@ -49,3 +49,11 @@ The history sidebar offers a quiet Export PDF action. Reports use A4 portrait pa
 The built-in guide uses plain descriptive section titles without numeric prefixes in all three languages. Session guidance explains when and how to export before resetting.
 
 A separate [Canva design reference](https://canva.link/g9sxk3xfj3dk8f5) documents the report direction. Runtime exports are generated locally and do not depend on Canva or an internet connection.
+
+## Cinematic stage, 1.5.0
+
+The controller now begins at an optional full-window welcome screen. The operator can enter with sound or silently, drag the orbital sculpture, skip the short entrance with Escape, and save a preference to bypass the welcome screen at later starts. The footer retains a Welcome action so revisiting the scene never changes the raffle session.
+
+WhizReveal's W monolith and two orbital rings were authored as an editable Blender/GLB scene with Higgsfield 3D Jutsu, then bundled locally at `public/models/whizreveal-orbital.glb`. Three.js loads that asset after the controller is available and preserves a procedural W-and-rings fallback. The same scene appears behind display numbers without display branding. It is dimmed when results are present, reacts to the active draw's duration, and emits a restrained reveal light pulse only after a live draw completes. Frame pressure reduces pixel density; hidden or offscreen canvases pause.
+
+The local Web Audio score has a welcome motif, low ambience, duration-aware draw tension, a short pre-reveal breath, and a layered reveal chord. It is produced by a single controller-owned engine, so the display does not echo it. Operators can mute it instantly, adjust Music and Effects independently, and audition it through Test sound. No audio asset, network request, or third-party track is used.
