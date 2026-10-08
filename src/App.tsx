@@ -75,14 +75,60 @@ export function App() {
   }, [fullscreen]);
 
   return <>
-    {snapshot ? isDisplay ? <main className="display-shell"><ImmersiveStage presentation snapshot={snapshot} occupied={snapshot.history.length > 0 || !!snapshot.activeDraw}><RevealCanvas snapshot={snapshot} presentation /></ImmersiveStage><div className="display-tools"><button className="display-tool" aria-label={fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'} title={fullscreen ? 'Exit fullscreen (Esc)' : 'Enter fullscreen (F11)'} onClick={() => void toggleFullscreen()}>{fullscreen ? <Minimize size={18} /> : <Maximize size={18} />}</button></div></main>
-      : <Controller snapshot={snapshot} actions={actions} busy={busy} displayOpen={displayOpen} displayBusy={displayBusy} onShowWelcome={() => setShowWelcome(true)} />
-      : <main className="loading-screen"><span className="loading-dot" /><span className={isDisplay ? 'sr-only' : ''}>{error ? 'Unable to load session' : 'Opening your session'}</span>{error && <button className="secondary-button" onClick={() => window.location.reload()}>Try again</button>}</main>}
-    <AnimatePresence>
-      {showWelcome && !isDisplay && (
-        <motion.div key="welcome-overlay" className="welcome-overlay" initial={{ opacity: 1 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}>
+    <AnimatePresence mode="wait">
+      {showWelcome && !isDisplay ? (
+        <motion.div
+          key="welcome"
+          className="welcome-overlay"
+          initial={{ opacity: 1 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+        >
           <WelcomeScreen onBegin={beginWelcomeAudio} onComplete={completeWelcome} />
         </motion.div>
+      ) : snapshot ? (
+        isDisplay ? (
+          <main key="display" className="display-shell">
+            <ImmersiveStage presentation snapshot={snapshot} occupied={snapshot.history.length > 0 || !!snapshot.activeDraw}>
+              <RevealCanvas snapshot={snapshot} presentation />
+            </ImmersiveStage>
+            <div className="display-tools">
+              <button
+                className="display-tool"
+                aria-label={fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+                title={fullscreen ? 'Exit fullscreen (Esc)' : 'Enter fullscreen (F11)'}
+                onClick={() => void toggleFullscreen()}
+              >
+                {fullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
+              </button>
+            </div>
+          </main>
+        ) : (
+          <motion.div
+            key="controller"
+            className="controller-shell-wrap"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <Controller
+              snapshot={snapshot}
+              actions={actions}
+              busy={busy}
+              displayOpen={displayOpen}
+              displayBusy={displayBusy}
+              onShowWelcome={() => setShowWelcome(true)}
+            />
+          </motion.div>
+        )
+      ) : (
+        <main key="loading" className="loading-screen">
+          <span className="loading-dot" />
+          <span className={isDisplay ? 'sr-only' : ''}>{error ? 'Unable to load session' : 'Opening your session'}</span>
+          {error && <button className="secondary-button" onClick={() => window.location.reload()}>Try again</button>}
+        </main>
       )}
     </AnimatePresence>
     <ErrorToast message={error ?? windowError} onClose={() => { clearError(); setWindowError(null); }} />
