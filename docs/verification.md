@@ -116,3 +116,10 @@ Native Save-dialog interaction, real-Mac Gatekeeper acceptance, and physical mul
 - The welcome screen was checked visually at a desktop viewport: the W scene loaded without console errors, drag interaction remained available, Enter silently reached the controller, Escape skipped the entering transition, and Skip welcome next time persisted after reload.
 - The browser audience display retained centered, readable number tiles over the dimmed sculpture. A live five-second draw completed and exposed its history as expected.
 - Sound controls expose persisted Music and Effects sliders plus Test sound. Browser automation verified interaction and mute state; it cannot establish physical loudspeaker quality.
+
+## Maintenance fixes, 1.5.1
+
+- TypeScript checking, 64 frontend tests, 20 Rust tests, a Vite production build, and the Windows NSIS installer build passed on Windows.
+- Escape on a windowed audience display no longer resets its size and title bar; it only exits fullscreen.
+- Controller Unique drawn and Remaining counts exclude the in-progress draw, matching Session history until the reveal.
+- These fixes were checked by code review and automated checks. Physical multi-monitor behavior was not retested.

@@ -59,10 +59,13 @@ export function App() {
     if (!isDisplay) return;
     const change = () => { if (!isNative) setFullscreen(!!document.fullscreenElement); };
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' || event.key === 'F11') {
+      if (event.key === 'F11') {
         event.preventDefault();
-        if (event.key === 'Escape') void setPresentationFullscreen(false);
-        else void toggleFullscreen();
+        void toggleFullscreen();
+      } else if (event.key === 'Escape' && fullscreen) {
+        // Only leave fullscreen; a windowed display keeps its size and position.
+        event.preventDefault();
+        void setPresentationFullscreen(false);
       }
     };
     document.addEventListener('fullscreenchange', change);

@@ -124,7 +124,9 @@ export function Controller({ snapshot, actions, busy, displayOpen, displayBusy, 
   const [showReset, setShowReset] = useState(false);
   const [dirty, setDirty] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const drawn = new Set(snapshot.history.flatMap((draw) => draw.numbers)).size;
+  // Count only revealed draws, matching Session history, so stats do not change before the reveal.
+  const revealed = snapshot.history.filter((draw) => draw.id !== snapshot.activeDraw?.draw.id);
+  const drawn = new Set(revealed.flatMap((draw) => draw.numbers)).size;
   const remaining = snapshot.config.totalSamples - drawn;
   const drawing = !!snapshot.activeDraw;
   const exhausted = snapshot.config.noDuplicates && remaining < snapshot.config.drawCount;

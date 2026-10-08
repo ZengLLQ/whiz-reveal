@@ -10,7 +10,7 @@ Local release packages are generated in `release/`: `WhizReveal.exe`, a portable
 
 The welcome screen offers **Enter with sound** and **Enter silently**, an interactive shader sculpture, a short camera transition, and **Skip intro**. **Skip welcome next time** saves a faster startup preference. The controller footer's **Welcome** button reopens it without resetting any results.
 
-The scene reacts to the selected draw duration in both windows, builds suspense, and settles behind the result. Numbers remain on a stable centered layer. Reduced-motion settings suppress decorative animation; an automatic rendering adjustment and a static fallback keep controls available on less capable graphics hardware.
+The scene reacts to the selected draw duration in both windows, builds suspense, and settles behind the result. Numbers remain on a stable centered layer. Reduced-motion settings suppress decorative animation; a capped render resolution and a static fallback keep controls available on less capable graphics hardware.
 
 **Sound settings** provides separate Music and Effects volume controls and **Test sound**. Intro, ambience, tension, and reveal cues are composed locally with Web Audio. Only the controller plays audio, through the system's selected output. Nothing needs to stream from the internet.
 
