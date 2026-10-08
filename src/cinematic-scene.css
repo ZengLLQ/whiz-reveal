@@ -1,10 +1,18 @@
 .cinematic-stage { position: relative; isolation: isolate; overflow: hidden; }
-.cinematic-stage > .stage-sculpture { inset: 0; z-index: -1; }
-.cinematic-stage.stage-occupied > .stage-sculpture { opacity: .19; transform: scale(1.12) translate(17%, 0); }
-.cinematic-stage.presentation-stage > .stage-sculpture { opacity: .5; }
-.cinematic-stage.presentation-stage.stage-occupied > .stage-sculpture { opacity: .26; transform: scale(1.15); }
+.cinematic-stage > .stage-sculpture { inset: 0 0 44px 0; z-index: 0; transform-origin: center center; }
+.cinematic-stage.presentation-stage > .stage-sculpture { inset: 0; opacity: 0.55; }
+.cinematic-stage.welcome-stage > .stage-sculpture { inset: 0; }
+.cinematic-stage.stage-occupied > .stage-sculpture { opacity: 0.38; transform: scale(1.06); }
+.cinematic-stage.presentation-stage.stage-occupied > .stage-sculpture { opacity: 0.34; transform: scale(1.08); }
 .welcome-scene > .cinematic-stage.welcome-stage { background: #0B0D10; touch-action: pan-y; cursor: grab; }
 .welcome-scene > .cinematic-stage.welcome-stage:active { cursor: grabbing; }
-.welcome-scene .cinematic-stage > .stage-sculpture { inset: 0 0 0 35%; opacity: 1; transform: none; }
-@media (max-width:700px) { .welcome-scene .cinematic-stage > .stage-sculpture { inset: 5% 0 48%; } }
-@media (prefers-reduced-motion:reduce) { .cinematic-stage > .stage-sculpture { transition: none; } }
+.welcome-scene .cinematic-stage > .stage-sculpture { inset: 0 0 0 35%; opacity: 1; transform: none; transition: inset 1050ms cubic-bezier(0.16, 1, 0.3, 1), transform 1050ms cubic-bezier(0.16, 1, 0.3, 1); }
+.welcome-entering .welcome-scene .cinematic-stage > .stage-sculpture { inset: 0; transform: scale(0.92); }
+@media (max-width:700px) {
+  .welcome-scene .cinematic-stage > .stage-sculpture { inset: 5% 0 48%; }
+  .welcome-entering .welcome-scene .cinematic-stage > .stage-sculpture { inset: 0; transform: scale(0.92); }
+}
+@media (prefers-reduced-motion:reduce) {
+  .cinematic-stage > .stage-sculpture,
+  .welcome-scene .cinematic-stage > .stage-sculpture { transition: none; }
+}

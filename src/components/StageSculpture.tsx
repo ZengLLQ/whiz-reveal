@@ -4,6 +4,12 @@ import type { Snapshot } from '../lib/types';
 
 type Pointer = RefObject<{ x: number; y: number; drag: number }>;
 
+// Shared continuous state across stage instances so transitions never snap in rotation or time.
+let sharedElapsed = 0;
+let sharedRotX = 0.4;
+let sharedRotY = -0.35;
+let sharedRotZ = -0.35;
+
 /** A compact, offline shader sculpture. It uses no model downloads or texture assets. */
 export function StageSculpture({ pointer, snapshot, welcome = false, entering = false }: {
   pointer: Pointer; snapshot?: Snapshot; welcome?: boolean; entering?: boolean; presentation?: boolean;
@@ -38,8 +44,8 @@ export function StageSculpture({ pointer, snapshot, welcome = false, entering = 
         fragmentShader: `uniform vec3 ink,panel,edge,muted,paper; varying vec3 surfaceNormal; varying vec3 viewDirection; void main(){ vec3 normal=normalize(surfaceNormal); vec3 view=normalize(viewDirection); vec3 light=normalize(vec3(-0.7,1.0,1.2)); float diffuse=dot(normal,light)*0.5+0.5; float rim=pow(1.0-max(dot(normal,view),0.0),3.0); float gloss=pow(max(dot(reflect(-light,normal),view),0.0),30.0); vec3 color=mix(ink,panel,smoothstep(0.0,0.3,diffuse)); color=mix(color,edge,smoothstep(0.25,0.6,diffuse)); color=mix(color,muted,smoothstep(0.5,0.88,diffuse)); color=mix(color,paper,smoothstep(0.87,1.0,diffuse)*0.8); color=mix(color,paper,min(0.85,gloss*0.7+rim*0.3)); gl_FragColor=vec4(color,1.0); }`,
       });
       const sculpture = new THREE.Mesh(geometry, material);
-      sculpture.rotation.set(0.4, -0.35, -0.35); scene.add(sculpture); container.appendChild(renderer.domElement);
-      let frame = 0, previous = 0, elapsed = 0, visible = true, lost = false, entranceAt = -1;
+      sculpture.rotation.set(sharedRotX, sharedRotY, sharedRotZ); scene.add(sculpture); container.appendChild(renderer.domElement);
+      let frame = 0, previous = 0, elapsed = sharedElapsed, visible = true, lost = false, entranceAt = -1;
       let previousSession = sceneState.current.snapshot?.sessionId, previousActive: string | null = null, revealAt = -Infinity;
       function render(time: number) {
         frame = 0; if (disposed || lost || !visible || document.hidden) return;
@@ -52,9 +58,26 @@ export function StageSculpture({ pointer, snapshot, welcome = false, entering = 
         const drawProgress = active ? Math.min(1, Math.max(0, (Date.now() - active.startedAt) / active.durationMs)) : 0;
         const revealPulse = Math.max(0, 1 - (time - revealAt) / 1400);
         if (isEntering && entranceAt < 0) entranceAt = time; if (!isEntering) entranceAt = -1;
-        const entry = isEntering ? Math.min(1, (time - entranceAt) / 4000) : 0, motion = reducedMotion ? 0 : 1;
-        if (!reducedMotion) { elapsed += delta; sculpture.rotation.x += (0.4 + pointer.current.y * 0.45 - sculpture.rotation.x) * 0.055; sculpture.rotation.y += (-0.35 + Math.sin(elapsed * 0.22) * 0.35 + pointer.current.x * 0.75 + pointer.current.drag - sculpture.rotation.y) * 0.055; sculpture.rotation.z = -0.35 + Math.sin(elapsed * 0.18) * 0.08; sculpture.position.y = Math.sin(elapsed * 0.6) * 0.055; sculpture.rotation.y += drawProgress * 0.007 + revealPulse * 0.012 + entry * 0.003; }
-        sculpture.scale.setScalar(1 + revealPulse * 0.06 + entry * 0.04); camera.position.z = (camera.aspect < 1 ? 7.7 / camera.aspect : 7.7) - entry * 0.5 * motion; camera.lookAt(0, 0, 0); renderer.render(scene, camera); if (!reducedMotion) frame = requestAnimationFrame(render);
+        const rawProgress = isEntering ? Math.min(1, (time - entranceAt) / 1050) : 0;
+        const entry = 1 - Math.pow(1 - rawProgress, 3);
+        const motion = reducedMotion ? 0 : 1;
+        if (!reducedMotion) {
+          elapsed += delta;
+          sharedElapsed = elapsed;
+          sculpture.rotation.x += (0.4 + pointer.current.y * 0.45 - sculpture.rotation.x) * 0.055;
+          sculpture.rotation.y += (-0.35 + Math.sin(elapsed * 0.22) * 0.35 + pointer.current.x * 0.75 + pointer.current.drag - sculpture.rotation.y) * 0.055;
+          sculpture.rotation.z = -0.35 + Math.sin(elapsed * 0.18) * 0.08;
+          sculpture.position.y = Math.sin(elapsed * 0.6) * 0.055;
+          sculpture.rotation.y += drawProgress * 0.007 + revealPulse * 0.012 + entry * 0.008;
+          sharedRotX = sculpture.rotation.x;
+          sharedRotY = sculpture.rotation.y;
+          sharedRotZ = sculpture.rotation.z;
+        }
+        sculpture.scale.setScalar(1 + revealPulse * 0.06 + entry * 0.05);
+        camera.position.z = (camera.aspect < 1 ? 7.7 / camera.aspect : 7.7) - entry * 0.6 * motion;
+        camera.lookAt(0, 0, 0);
+        renderer.render(scene, camera);
+        if (!reducedMotion) frame = requestAnimationFrame(render);
       }
       function resume() { cancelAnimationFrame(frame); previous = 0; frame = requestAnimationFrame(render); }
       const resize = new ResizeObserver(() => { const { width, height } = container.getBoundingClientRect(); if (!width || !height) return; renderer.setSize(width, height); camera.aspect = width / height; camera.updateProjectionMatrix(); resume(); });

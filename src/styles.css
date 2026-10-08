@@ -86,9 +86,9 @@ kbd { font-family: inherit; }
 .status-dot { width: 4px; height: 4px; border-radius: 50%; display: inline-block; background: #5D6F82; flex-shrink: 0; }
 .pulsing { animation: pulse 850ms ease-in-out infinite; background: #E7EEF5; }
 .preview-stage { min-height: 315px; height: clamp(315px, 43vh, 560px); flex: 1; border: 1px solid #2A333D; border-radius: 11px; overflow: hidden; display: flex; flex-direction: column; }
-.preview-baseline { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 16px 21px; font-size: 10px; color: #5D6F82; }
+.preview-baseline { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 16px 21px; font-size: 10px; color: #5D6F82; }
 .baseline-mark { font-size: 15px; line-height: 1; }
-.reveal-canvas { overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth; min-height: 0; }
+.reveal-canvas { position: relative; z-index: 1; overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth; min-height: 0; }
 .preview-canvas { flex: 1; padding: 26px 20px 6px; }
 .current-numbers { min-height: 100%; display: flex; align-items: center; justify-content: center; }
 .number-grid { display: grid; width: 100%; max-width: var(--grid-max); gap: var(--grid-gap); grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--tile-min)), 1fr)); margin: 0 auto; }

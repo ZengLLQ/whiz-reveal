@@ -29,7 +29,7 @@ export function WelcomeScreen({ onBegin, onComplete }: WelcomeScreenProps) {
   function begin(enabled: boolean) {
     if (started.current) return;
     started.current = true;
-    deadline.current = performance.now() + (reducedMotion ? 200 : 4000);
+    deadline.current = performance.now() + (reducedMotion ? 150 : 1050);
     // This callback stays within the click gesture so Web Audio can be unlocked.
     try { onBegin(enabled); }
     catch { /* Audio is optional; always let the user enter. */ }
@@ -62,8 +62,8 @@ export function WelcomeScreen({ onBegin, onComplete }: WelcomeScreenProps) {
 
     <div className="welcome-layout">
       <motion.section className="welcome-copy" initial={reducedMotion ? false : { opacity: 0, y: 18 }}
-        animate={{ opacity: entering ? 0 : 1, y: entering ? -14 : 0 }}
-        transition={{ duration: reducedMotion ? 0 : entering ? 0.65 : 0.9, ease: [0.22, 1, 0.36, 1] }}>
+        animate={{ opacity: entering ? 0 : 1, y: entering ? -18 : 0 }}
+        transition={{ duration: reducedMotion ? 0 : entering ? 0.45 : 0.9, ease: [0.22, 1, 0.36, 1] }}>
         <p className="welcome-eyebrow"><span />The moment starts here</p>
         <h1 id="welcome-title">Let possibility<br />take the stage.</h1>
         <p className="welcome-description">Your next reveal deserves an entrance.</p>
