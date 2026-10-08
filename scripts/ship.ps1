@@ -14,7 +14,14 @@ Write-Host "==> Step 2: Building Windows desktop installer..." -ForegroundColor 
 npm run desktop:build
 
 Write-Host "==> Step 3: Packaging release bundles..." -ForegroundColor Cyan
-if (Test-Path "release/package-v151.py") {
+$pkg = Get-Content package.json -Raw | ConvertFrom-Json
+$verClean = $pkg.version.Replace(".", "")
+$packScript = "release/package-v$verClean.py"
+if (Test-Path $packScript) {
+    python $packScript
+} elseif (Test-Path "release/package-v160.py") {
+    python release/package-v160.py
+} elseif (Test-Path "release/package-v151.py") {
     python release/package-v151.py
 }
 
@@ -31,7 +38,6 @@ Write-Host "==> Step 5: Pushing to GitHub..." -ForegroundColor Cyan
 git push origin main
 
 # Extract version from package.json
-$pkg = Get-Content package.json -Raw | ConvertFrom-Json
 $tag = "v$($pkg.version)"
 
 # Check if tag needs updating
@@ -51,9 +57,28 @@ if ($token) {
     $sourceZip = "release/WhizReveal-$($pkg.version)-source.zip"
     $checksums = "release/SHA256SUMS-$($pkg.version).txt"
 
+    # Ensure release exists
+    $releaseExists = gh release view $tag --repo ZengLLQ/WhizReveal 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $notesFile = "release/RELEASE-NOTES-$($pkg.version).md"
+        if (Test-Path $notesFile) {
+            gh release create $tag --title "WhizReveal $($pkg.version)" --notes-file $notesFile --repo ZengLLQ/WhizReveal
+        } else {
+            gh release create $tag --title "WhizReveal $($pkg.version)" --notes "Release $($pkg.version)" --repo ZengLLQ/WhizReveal
+        }
+    }
+
     if (Test-Path $setupExe) {
         gh release upload $tag $setupExe $zipArchive $sourceZip $checksums --clobber --repo ZengLLQ/WhizReveal
-        Write-Host "==> Uploaded assets to GitHub Release $tag successfully!" -ForegroundColor Green
+        Write-Host "==> Uploaded Windows assets to GitHub Release $tag successfully!" -ForegroundColor Green
+    }
+
+    Write-Host "==> Step 7: Triggering macOS universal build via GitHub Actions..." -ForegroundColor Cyan
+    try {
+        gh workflow run "macOS universal build" --ref $tag --repo ZengLLQ/WhizReveal
+        Write-Host "==> macOS universal build triggered on GitHub Actions runner!" -ForegroundColor Green
+    } catch {
+        Write-Host "macOS workflow will trigger automatically via tag push." -ForegroundColor Yellow
     }
 }
 
