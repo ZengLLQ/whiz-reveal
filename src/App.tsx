@@ -108,6 +108,7 @@ export function App() {
           <motion.div
             key="controller"
             className="controller-shell-wrap"
+            style={{ width: '100%', flex: 1, display: 'flex', flexDirection: 'column' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

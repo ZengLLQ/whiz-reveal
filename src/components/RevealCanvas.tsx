@@ -15,6 +15,8 @@ function NumberGrid({ numbers, count, total, cycling, seed, large = false, scale
   }, [cycling, reducedMotion]);
 
   const digits = Math.max(2, String(total).length);
+  const dynamicCols = large ? Math.min(count, 5) : Math.min(count, count >= 10 ? 5 : 4);
+  const cols = Math.max(1, dynamicCols);
   const style = {
     '--tile-min': `${(large ? 206 : 112) * scale}px`,
     '--presentation-tile-min': `${206 * scale}px`,
@@ -22,8 +24,8 @@ function NumberGrid({ numbers, count, total, cycling, seed, large = false, scale
     '--tile-height': `${(large ? 226 : 146) * scale}px`,
     '--number-font': `${(large ? 108 : 66) * scale}px`,
     '--grid-gap': `${(large ? 22 : 12) * scale}px`,
-    '--grid-max': `${Math.min(count, large ? 5 : 4) * (large ? 254 : 170) * scale}px`,
-    '--grid-columns': `${Math.min(count, large ? 5 : 4)}`,
+    '--grid-max': `${cols * (large ? 254 : 176) * scale}px`,
+    '--grid-columns': `${cols}`,
     '--digits': digits,
   } as CSSProperties;
 
