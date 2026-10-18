@@ -33,7 +33,7 @@
 .stage-sculpture { position: absolute; inset: 0 0 44px 0; pointer-events: none; z-index: 0; transform-origin: center center; transition: opacity 700ms ease, transform 700ms cubic-bezier(0.16, 1, 0.3, 1); }
 .sculpture-webgl { position: absolute; inset: 0; }
 .sculpture-webgl canvas { display: block; width: 100%; height: 100%; }
-.stage-occupied .stage-sculpture { opacity: 0.38; transform: scale(1.06); }
+.stage-occupied .stage-sculpture { opacity: 0.28; transform: scale(1.25) translate(40%, 8%); }
 .stage-idle .stage-sculpture { opacity: 0.82; transform: scale(1); }
 .stage-welcome { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding: 0 24px 20px; text-align: center; pointer-events: none; }
 .stage-welcome h1 { font-size: clamp(28px, 3vw, 46px); font-weight: 400; letter-spacing: -0.055em; line-height: 1.15; margin: 0 0 10px; }
@@ -123,7 +123,7 @@
 /* A fixed decorative layer keeps both audience views readable and scrollable. */
 .presentation-stage { position: relative; isolation: isolate; width: 100%; height: 100%; overflow: hidden; background: #0B0D10; }
 .presentation-stage > .stage-sculpture { inset: 0; z-index: 0; opacity: 0.55; transform-origin: center center; }
-.presentation-stage.stage-occupied > .stage-sculpture { opacity: 0.34; transform: scale(1.08); }
+.presentation-stage.stage-occupied > .stage-sculpture { opacity: 0.26; transform: scale(1.25) translate(40%, 8%); }
 .presentation-stage > .presentation-canvas { position: relative; background: transparent; }
 
 .duration-select { width: 100%; margin-top: 10px; padding: 12px 14px; border: 1px solid #2A333D; border-radius: 11px; background: #171C22; color: #E7EEF5; font: inherit; font-size: calc(13px * var(--controller-text-scale, 1)); color-scheme: dark; }

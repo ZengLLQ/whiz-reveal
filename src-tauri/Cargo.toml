@@ -1,6 +1,6 @@
 [package]
 name = "whizreveal"
-version = "1.6.0"
+version = "1.6.1"
 description = "A focused native raffle controller and presentation display"
 authors = ["JAYCEE 曾令强"]
 edition = "2021"

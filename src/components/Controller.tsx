@@ -158,7 +158,7 @@ export function Controller({ snapshot, actions, busy, displayOpen, displayBusy, 
         <Parameters snapshot={snapshot} actions={actions} busy={busy} onDirtyChange={setDirty} />
         <section className="draw-workspace" aria-label="Draw controller">
           <div className="preview-heading"><span>{snapshot.presentation.view === 'current' ? 'Current draw' : 'Full history'}</span><span className="preview-indicator"><span className={`status-dot ${drawing ? 'pulsing' : ''}`} />{drawing ? 'Drawing' : 'Live preview'}</span></div>
-          <ImmersiveStage occupied={!!latest} snapshot={snapshot}>
+          <ImmersiveStage occupied={!!latest || drawing} snapshot={snapshot}>
             {latest ? <RevealCanvas snapshot={snapshot} /> : <div className="stage-welcome"><h1>Ready to reveal.</h1><p>Set your numbers. Let chance take over.</p></div>}
             <div className="preview-baseline"><span>{drawing ? 'Drawing in progress' : latest ? `Draw ${String(latest.id).padStart(2, '0')} · ${latest.numbers.length} ${latest.numbers.length === 1 ? 'number' : 'numbers'}` : 'WhizReveal / A moment of possibility'}</span><span className="baseline-mark" aria-hidden="true">↗</span></div>
           </ImmersiveStage>

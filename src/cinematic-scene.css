@@ -2,8 +2,8 @@
 .cinematic-stage > .stage-sculpture { inset: 0 0 44px 0; z-index: 0; transform-origin: center center; }
 .cinematic-stage.presentation-stage > .stage-sculpture { inset: 0; opacity: 0.55; }
 .cinematic-stage.welcome-stage > .stage-sculpture { inset: 0; opacity: 1; }
-.cinematic-stage.stage-occupied > .stage-sculpture { opacity: 0.38; transform: scale(1.06); }
-.cinematic-stage.presentation-stage.stage-occupied > .stage-sculpture { opacity: 0.34; transform: scale(1.08); }
+.cinematic-stage.stage-occupied > .stage-sculpture { opacity: 0.28; transform: scale(1.25) translate(40%, 8%); }
+.cinematic-stage.presentation-stage.stage-occupied > .stage-sculpture { opacity: 0.26; transform: scale(1.25) translate(40%, 8%); }
 .welcome-scene > .cinematic-stage.welcome-stage { background: #0B0D10; touch-action: pan-y; cursor: grab; }
 .welcome-scene > .cinematic-stage.welcome-stage:active { cursor: grabbing; }
 @media (prefers-reduced-motion: reduce) {

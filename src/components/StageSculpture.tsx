@@ -11,14 +11,12 @@ let sharedRotY = -0.35;
 let sharedRotZ = -0.35;
 
 /** A compact, offline shader sculpture. It uses no model downloads or texture assets. */
-export function StageSculpture({ pointer, snapshot, welcome = false }: {
+export function StageSculpture({ pointer, welcome = false }: {
   pointer: Pointer; snapshot?: Snapshot; welcome?: boolean; entering?: boolean; presentation?: boolean;
 }) {
   const host = useRef<HTMLDivElement>(null);
   const reducedMotion = useReducedMotion();
   const [ready, setReady] = useState(false);
-  const sceneState = useRef({ snapshot });
-  sceneState.current = { snapshot };
 
   useEffect(() => {
     const container = host.current;
@@ -52,26 +50,12 @@ export function StageSculpture({ pointer, snapshot, welcome = false }: {
       container.appendChild(renderer.domElement);
 
       let frame = 0, previous = 0, elapsed = sharedElapsed, visible = true, lost = false;
-      let previousSession = sceneState.current.snapshot?.sessionId, previousActive: string | null = null, revealAt = -Infinity;
 
       function render(time: number) {
         frame = 0;
         if (disposed || lost || !visible || document.hidden) return;
         const delta = Math.min((time - previous || 16) / 1000, 0.05);
         previous = time;
-        const { snapshot: current } = sceneState.current;
-        const active = current?.activeDraw, activeKey = active ? `${current?.sessionId}/${active.draw.id}` : null;
-        if (current?.sessionId !== previousSession) {
-          previousSession = current?.sessionId;
-          previousActive = null;
-          revealAt = -Infinity;
-        }
-        if (previousActive && !activeKey && current?.history.some(draw => `${current.sessionId}/${draw.id}` === previousActive)) {
-          revealAt = time;
-        }
-        previousActive = activeKey;
-        const drawProgress = active ? Math.min(1, Math.max(0, (Date.now() - active.startedAt) / active.durationMs)) : 0;
-        const revealPulse = Math.max(0, 1 - (time - revealAt) / 1400);
 
         if (!reducedMotion) {
           elapsed += delta;
@@ -80,15 +64,14 @@ export function StageSculpture({ pointer, snapshot, welcome = false }: {
           sculpture.rotation.y += (-0.35 + Math.sin(elapsed * 0.22) * 0.35 + pointer.current.x * 0.75 + pointer.current.drag - sculpture.rotation.y) * 0.055;
           sculpture.rotation.z = -0.35 + Math.sin(elapsed * 0.18) * 0.08;
           sculpture.position.y = Math.sin(elapsed * 0.6) * 0.055;
-          sculpture.rotation.y += drawProgress * 0.007 + revealPulse * 0.012;
           sharedRotX = sculpture.rotation.x;
           sharedRotY = sculpture.rotation.y;
           sharedRotZ = sculpture.rotation.z;
         }
 
-        // On desktop welcome screen, sit gently in hero area on right. On controller, center dead-center behind numbers.
+        // On desktop welcome screen, sit gently in hero area on right.
         sculpture.position.x = welcome ? (camera.aspect > 1 ? 0.85 : 0) : 0;
-        sculpture.scale.setScalar(1 + revealPulse * 0.06);
+        sculpture.scale.setScalar(1);
         camera.position.z = camera.aspect < 1 ? 7.7 / camera.aspect : 7.7;
         camera.lookAt(0, 0, 0);
         renderer.render(scene, camera);
@@ -102,9 +85,10 @@ export function StageSculpture({ pointer, snapshot, welcome = false }: {
       }
 
       const resize = new ResizeObserver(() => {
-        const { width, height } = container.getBoundingClientRect();
+        const width = container.clientWidth;
+        const height = container.clientHeight;
         if (!width || !height) return;
-        renderer.setSize(width, height);
+        renderer.setSize(width, height, false);
         camera.aspect = width / height;
         camera.updateProjectionMatrix();
         resume();
