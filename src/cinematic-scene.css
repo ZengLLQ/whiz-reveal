@@ -1,9 +1,15 @@
+/* The sculpture's position and scale live in the 3D scene (stage-renderer.ts).
+   CSS only decides how strongly it reads, so the render is never scaled as a bitmap. */
 .cinematic-stage { position: relative; isolation: isolate; overflow: hidden; }
-.cinematic-stage > .stage-sculpture { inset: 0 0 44px 0; z-index: 0; transform-origin: center center; }
+.cinematic-stage > .stage-sculpture { inset: 0 0 44px 0; z-index: 0; opacity: 0.82; transition: opacity 600ms ease; }
 .cinematic-stage.presentation-stage > .stage-sculpture { inset: 0; opacity: 0.55; }
 .cinematic-stage.welcome-stage > .stage-sculpture { inset: 0; opacity: 1; }
-.cinematic-stage.stage-occupied > .stage-sculpture { opacity: 0.28; transform: scale(1.25) translate(40%, 8%); }
-.cinematic-stage.presentation-stage.stage-occupied > .stage-sculpture { opacity: 0.26; transform: scale(1.25) translate(40%, 8%); }
+/* Resting beside results: wait for the reveal's light sweep to pass, then recede. */
+.cinematic-stage.stage-occupied > .stage-sculpture { opacity: 0.28; transition: opacity 1200ms ease 900ms; }
+.cinematic-stage.presentation-stage.stage-occupied > .stage-sculpture { opacity: 0.26; }
+/* Suspense: come forward while the numbers cycle. */
+.cinematic-stage.stage-drawing > .stage-sculpture { opacity: 0.6; transition: opacity 500ms ease; }
+.cinematic-stage.presentation-stage.stage-drawing > .stage-sculpture { opacity: 0.5; }
 .welcome-scene > .cinematic-stage.welcome-stage { background: #0B0D10; touch-action: pan-y; cursor: grab; }
 .welcome-scene > .cinematic-stage.welcome-stage:active { cursor: grabbing; }
 @media (prefers-reduced-motion: reduce) {

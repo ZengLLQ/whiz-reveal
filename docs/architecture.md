@@ -10,7 +10,9 @@ WhizReveal has one Rust-owned native session and two React window roles. The con
 | `src/components/Controller.tsx` | Inputs, apply action, draw trigger, session history, reset confirmation |
 | `src/components/ControllerTextSize.tsx` | Accessible text-size controls for the controller |
 | `src/components/ImmersiveStage.tsx` | Stable preview composition and pointer input for the sculpture |
-| `src/components/StageSculpture.tsx` | Lazy Three.js renderer, palette shader, reduced motion, resource cleanup and fallback |
+| `src/components/StageSculpture.tsx` | Lends a container to the shared renderer, reduced-motion input and CSS fallback |
+| `src/lib/stage-renderer.ts` | One lazily loaded Three.js renderer per window, palette shader, frame budget, draw choreography |
+| `src/lib/stage-motion.ts` | Pure, tested helpers: damping, draw energy, reveal detection, sweep timing and layout targets |
 | `src/components/ManualGuide.tsx` | Language chooser, accessible modal, guide navigation and focus restore |
 | `src/lib/manual-content.ts` | Offline English, Indonesian, and Simplified Chinese guide copy |
 | `src/fonts.css` | Local Aeonik font faces and weights |
@@ -76,7 +78,7 @@ All mutation and display-management commands check the caller's native window la
 1. Acquire the Rust session mutex and clone the current snapshot.
 2. Validate the requested draw and require no other active draw.
 3. Seed `StdRng` from operating-system randomness. With No Duplicates enabled, gather every previously used number, build the remaining inclusive pool, and perform partial Fisher–Yates sampling without replacement. With the toggle disabled, each position is an independent uniform sample from `1..=totalSamples`.
-4. Add the winners to history and create `activeDraw` with a 1,600 ms duration.
+4. Add the winners to history and create `activeDraw` with the configured draw duration (1–30 seconds, 1,600 ms by default).
 5. Atomically save the candidate session. Only after a successful save, install the snapshot in memory and emit it to both windows.
 6. A native completion timer clears the active draw and emits the final state. The session/draw ID guard prevents a stale timer from finishing another draw.
 
@@ -106,7 +108,7 @@ The controller's text preference ranges from 90% to 150% in 10% increments and r
 
 Controller typography scales through scoped CSS rules instead of zooming the entire window. Form labels, buttons, history copy, and the reset dialog follow the preference. Preview numbers and audience numbers retain their own sizing rules; the existing presentation scale remains responsible for audience number sizing.
 
-The interface uses layered surfaces and restrained spatial effects within the five-color palette. `ImmersiveStage` moves only its decorative backdrop in response to a mouse pointer; number results keep a stable plane. The audience view remains focused on numbers, and the draw animation remains rapid 2D number cycling followed by a spring reveal. Reduced-motion preferences suppress decorative motion. Aeonik is bundled through `src/fonts.css`, so typography does not require a remote font request. The installer also registers the fonts for the current Windows user; see the font provenance document. See [the design notes](design.md) for the rationale.
+The interface uses layered surfaces and restrained spatial effects within the five-color palette. `ImmersiveStage` moves only its decorative backdrop in response to a mouse pointer and the draw lifecycle; number results keep a stable plane. The audience view remains focused on numbers, and the draw animation remains rapid 2D number cycling followed by a spring reveal. Reduced-motion preferences suppress decorative motion. Aeonik is bundled through `src/fonts.css`, so typography does not require a remote font request. The installer also registers the fonts for the current Windows user; see the font provenance document. See [the design notes](design.md) for the rationale.
 
 ## Browser preview boundary
 

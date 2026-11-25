@@ -9,3 +9,11 @@ src-tauri/gen/
 artifacts/qa/
 release/
 tmp/
+*.stackdump
+
+# Local assistant and tooling state
+.claude/*
+!.claude/settings.json
+.anchor/
+.cto-toolkit/
+.forge/

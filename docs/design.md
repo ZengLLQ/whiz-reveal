@@ -32,7 +32,7 @@ The audience display has a separate 50–200% scale control. Both display views 
 
 Aeonik Regular, Medium, and Bold are bundled with the application. CJK glyphs fall back to Windows fonts. The installer also registers the supplied fonts for the current Windows user without overwriting existing Aeonik registrations. The portable app renders from the bundled fonts without requiring that registration.
 
-Three.js is loaded asynchronously. Rendering is capped at 30 frames per second and 1.5 device pixel ratio, suspended in a hidden document or offscreen canvas, and rendered without animation for reduced-motion users. A static CSS sculpture remains if WebGL is unavailable or its context is lost. Geometry, materials, renderer resources, listeners, and observers are released on unmount. Number results keep a stable reading plane.
+Three.js is loaded asynchronously. Rendering is capped at 30 frames per second at rest and 60 while the sculpture is moving, at 1.5 device pixel ratio, suspended in a hidden document or offscreen canvas, and rendered without animation for reduced-motion users. A static CSS sculpture remains if WebGL is unavailable or its context is lost. Each window creates one renderer and reuses it, so returning from the welcome screen never recompiles the scene or flashes the fallback; observers are released when a stage unmounts. Number results keep a stable reading plane.
 
 Drawing uses the selected duration (1–30 seconds, initially 1.6 seconds) of rapid 2D number cycling, followed by a staggered spring reveal. The depth treatment does not turn this into a slot-machine animation. Reduced-motion preferences suppress decorative movement and entrance animation, using a quiet placeholder during the draw before showing the committed result.
 
@@ -54,6 +54,19 @@ A separate [Canva design reference](https://canva.link/g9sxk3xfj3dk8f5) document
 
 The controller now begins at an optional full-window welcome screen. The operator can enter with sound or silently, drag the sculpture, skip the short entrance with Escape, and save a preference to bypass the welcome screen at later starts. The footer retains a Welcome action so revisiting the scene never changes the raffle session.
 
-Since 1.5.1 the stage uses the original lightweight Three.js shader sculpture, generated at runtime with no model download; the 1.5.0 orbital GLB asset was removed. Three.js loads after the controller is available, and a CSS fallback covers devices without WebGL. The same scene appears behind display numbers without display branding. It is dimmed when results are present, reacts to the active draw's duration, and emits a restrained reveal light pulse only after a live draw completes. Pixel density is capped at 1.5×; hidden or offscreen canvases pause.
+Since 1.5.1 the stage uses the original lightweight Three.js shader sculpture, generated at runtime with no model download; the 1.5.0 orbital GLB asset was removed. Three.js loads after the controller is available, and a CSS fallback covers devices without WebGL. The same scene appears behind display numbers without display branding. It is dimmed when results are present, reacts to the active draw's duration, and sweeps a restrained band of light across the form only after a live draw completes. Pixel density is capped at 1.5×; hidden or offscreen canvases pause.
 
 The local Web Audio score has a welcome motif, low ambience, duration-aware draw tension, a short pre-reveal breath, and a layered reveal chord. It is produced by a single controller-owned engine, so the display does not echo it. Operators can mute it instantly, adjust Music and Effects independently, and audition it through Test sound. No audio asset, network request, or third-party track is used.
+
+## Stage choreography
+
+The sculpture now takes part in every draw instead of only stepping aside. Its position, scale and motion live in the 3D scene (`src/lib/stage-renderer.ts`), so tucking it beside results no longer scales the canvas as a bitmap and the render stays sharp. CSS only decides how strongly it reads.
+
+| Phase | Sculpture |
+| --- | --- |
+| Idle | Centered, gently drifting; lifted slightly in the controller preview so it clears the heading |
+| Drawing | Comes forward (opacity 0.6 controller, 0.5 display), spins up on an ease-in curve across the selected duration, and its silhouette catches more light; the tube surface breathes with a slow ripple |
+| Reveal | One band of light sweeps across the form in 1.1 s with a brief brightening. Nothing changes size, so there is no post-draw pop |
+| Rest | After the sweep, recedes toward the right edge and dims to 0.28 (display 0.26) behind the results |
+
+Every value eases with frame-rate independent damping (`src/lib/stage-motion.ts`), so the motion feels the same on 60, 100 and 144 Hz screens. Reduced-motion users see the same layout without suspense, sweep or travel. The audience display renders a finer mesh for large screens.
