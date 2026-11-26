@@ -6,7 +6,7 @@ export const SHEEN_OFFSET_S = 0.12;
 export const SHEEN_DURATION_S = 0.72;
 /**
  * Larger draws skip the sheen, for cost: each sheening tile becomes its own clipped
- * compositing layer for the length of its pass (immersive.css), and the reveal is already
+ * compositing layer for the length of its pass (styles.css), and the reveal is already
  * the busiest moment of a draw. From the seventh tile on, the spring stagger has reached
  * its ceiling, so those tiles share one sheen delay and all their layers start together;
  * the cap keeps that shared pass to a few dozen tiles. It is not about legibility: below

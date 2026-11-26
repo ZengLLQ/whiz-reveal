@@ -4,12 +4,14 @@
   justify-content: center;
   gap: 8px;
   min-height: 42px;
-  padding: 10px 13px;
+  padding: 10px 17px;
   color: #E7EEF5;
   background: #0B0D10;
   border: 1px solid #2A333D;
-  border-radius: 10px;
-  font-size: calc(12px * var(--controller-text-scale, 1));
+  border-radius: 30px;
+  font-size: var(--controller-text-sm);
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
   white-space: nowrap;
 }
 .manual-guide-trigger:hover { background: #171C22; border-color: #5D6F82; }
@@ -72,7 +74,6 @@
 @keyframes manual-guide-appear { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 @media (max-width: 640px) {
   .manual-guide-dialog { width: calc(100vw - 20px); max-height: calc(100dvh - 20px); border-radius: 16px; }
-  .manual-guide-frame { max-height: none; }
   .manual-guide-header { padding: 22px 20px 19px; gap: 12px; }
   .manual-guide-header h2 { font-size: 2em; }
   .manual-guide-eyebrow { margin-bottom: 12px; }
@@ -85,4 +86,6 @@
   .manual-guide-content { padding: 22px 20px 24px; }
   .manual-guide-footer { padding: 14px 20px; flex-wrap: wrap; }
 }
+/* The trigger sits in the controller's top bar, so it follows the controller's phone breakpoint. */
+@media (max-width: 620px) { .manual-guide-trigger { padding: 10px 13px; } }
 @media (prefers-reduced-motion: reduce) { .manual-guide-dialog[open] { animation: none; } }

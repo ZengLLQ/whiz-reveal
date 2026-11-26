@@ -1,8 +1,7 @@
 .history-export { margin-top: 22px; }
-.controller-shell .history-export-button { width: 100%; min-height: 40px; padding: 10px 14px; gap: 8px; font-size: var(--controller-text-md); }
-.history-export-button svg { flex-shrink: 0; }
+/* A secondary button: its text takes the controller's secondary-button size (controller-typography.css). */
+.controller-shell .history-export-button { width: 100%; min-height: 40px; padding: 10px 14px; gap: 8px; }
 .history-export-button:hover:not(:disabled) { border-color: #5D6F82; }
-.history-export-button:disabled { background: #171C22; }
 .history-export-button:focus-visible { outline: 2px solid #E7EEF5; outline-offset: 3px; }
 .history-export-status { color: #5D6F82; font-size: var(--controller-text-xs); line-height: 1.6; overflow-wrap: anywhere; }
 .history-export-status:not(:empty) { margin-top: 9px; }

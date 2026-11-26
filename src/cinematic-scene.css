@@ -1,7 +1,16 @@
-/* The sculpture's position and scale live in the 3D scene (stage-renderer.ts).
-   CSS only decides how strongly it reads, so the render is never scaled as a bitmap. */
+/* The stage and its sculpture (ImmersiveStage, StageSculpture). The sculpture's position and scale live in
+   the 3D scene (stage-renderer.ts). CSS only decides how strongly it reads, so the render is never scaled
+   as a bitmap. Each mode's frame (the preview panel, the display, the welcome backdrop) is styled by its owner. */
 .cinematic-stage { position: relative; isolation: isolate; overflow: hidden; }
-.cinematic-stage > .stage-sculpture { inset: 0 0 44px 0; z-index: 0; opacity: 0.82; transition: opacity 600ms ease; }
+.cinematic-stage > .stage-sculpture { position: absolute; inset: 0 0 44px 0; pointer-events: none; z-index: 0; opacity: 0.82; transition: opacity 600ms ease; }
+.sculpture-webgl { position: absolute; inset: 0; }
+.sculpture-webgl canvas { display: block; width: 100%; height: 100%; }
+/* The static CSS sculpture shown until WebGL is ready, and instead of it when WebGL is unavailable. */
+.sculpture-fallback { position: absolute; top: 50%; left: 50%; width: 160px; height: 160px; transform: translate(-50%, -50%); }
+.sculpture-fallback i { position: absolute; inset: 0; border: 25px solid #5D6F82; border-radius: 45%; box-shadow: inset 6px 6px 0 #2A333D; transform: rotate(35deg) skewY(15deg); }
+.sculpture-fallback i:nth-child(2) { transform: rotate(95deg) skewY(15deg); border-color: #2A333D; }
+.sculpture-fallback i:nth-child(3) { transform: rotate(155deg) skewY(15deg); border-color: #5D6F82; }
+.sculpture-ready .sculpture-fallback { display: none; }
 /* The preview's canvas stops above its baseline row; its last 48px fade into the panel so the light pool,
    the dust and a tucked sculpture dissolve there instead of ending in a straight cut. The fade is the panel's
    own colour laid over the sculpture layer: over that plain panel it gives the same pixels as masking the
@@ -17,8 +26,6 @@
 /* Suspense: come forward while the numbers cycle. */
 .cinematic-stage.stage-drawing > .stage-sculpture { opacity: 0.6; transition: opacity 500ms ease; }
 .cinematic-stage.presentation-stage.stage-drawing > .stage-sculpture { opacity: 0.5; }
-.welcome-scene > .cinematic-stage.welcome-stage { background: #0B0D10; touch-action: pan-y; cursor: grab; }
-.welcome-scene > .cinematic-stage.welcome-stage:active { cursor: grabbing; }
 @media (prefers-reduced-motion: reduce) {
   .cinematic-stage > .stage-sculpture { transition: none; }
 }

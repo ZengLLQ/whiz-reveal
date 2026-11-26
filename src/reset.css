@@ -1,0 +1,16 @@
+/* Explicit base reset. It replaces Tailwind CSS's preflight and keeps just the preflight rules that reach
+   elements the app renders (no links, lists, images, tables, textareas or placeholders are rendered).
+   Like preflight it sits in a cascade layer, so any unlayered rule in the app overrides it,
+   whatever that rule's order or specificity. */
+@layer base {
+  *, ::before, ::after, ::backdrop { box-sizing: border-box; margin: 0; padding: 0; border: 0 solid; }
+  html { line-height: 1.5; -webkit-text-size-adjust: 100%; tab-size: 4; -webkit-tap-highlight-color: transparent; }
+  h1, h2, h3, h4 { font-size: inherit; font-weight: inherit; }
+  kbd { font-size: 1em; font-feature-settings: normal; font-variation-settings: normal; }
+  svg, canvas { display: block; vertical-align: middle; }
+  button, input, select { font: inherit; font-feature-settings: inherit; font-variation-settings: inherit; letter-spacing: inherit; color: inherit; background-color: transparent; border-radius: 0; opacity: 1; }
+  button { appearance: button; }
+  ::-webkit-inner-spin-button, ::-webkit-outer-spin-button { height: auto; }
+  :-moz-focusring:where(:not(iframe)) { outline: auto; }
+  :-moz-ui-invalid { box-shadow: none; }
+}

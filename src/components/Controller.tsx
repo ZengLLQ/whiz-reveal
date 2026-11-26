@@ -64,13 +64,13 @@ function Parameters({ snapshot, actions, busy, onDirtyChange }: { snapshot: Snap
           value={samples} disabled={disabled || snapshot.history.length > 0}
           onChange={(event) => setSamples(event.target.value)} /><span>samples</span></div>
         <p className="field-hint">{snapshot.history.length ? 'Start a new session to change the pool.' : `Every number from 1 to ${Number(samples) > 0 ? Number(samples).toLocaleString() : '…'}.`}</p>
-        <label className="field-label mt-6" htmlFor="draw-count">Number of draws</label>
+        <label className="field-label" htmlFor="draw-count">Number of draws</label>
         <div className="input-shell"><input id="draw-count" type="number" min={1} max={500} step={1} value={count} disabled={disabled}
           onChange={(event) => setCount(event.target.value)} /><span>per draw</span></div>
         {editing && <button className="apply-button" type="submit" disabled={disabled}><Check size={14} />Apply settings</button>}
         {fieldError && <p role="alert" className="field-error">{fieldError}</p>}
       </form>
-      <label className="field-label mt-6" htmlFor="draw-duration">Draw duration</label>
+      <label className="field-label" htmlFor="draw-duration">Draw duration</label>
       <select id="draw-duration" className="duration-select" value={snapshot.config.drawDurationMs ?? 1600} disabled={disabled || editing}
         onChange={(event) => void actions.updateConfig({ ...snapshot.config, drawDurationMs: Number(event.target.value) })}>
         {[1000, 1600, 3000, 5000, 10000, 15000, 20000, 30000].map(ms => <option key={ms} value={ms}>{ms / 1000} seconds</option>)}
@@ -86,7 +86,7 @@ function Parameters({ snapshot, actions, busy, onDirtyChange }: { snapshot: Snap
       {!snapshot.config.noDuplicates && <p className="field-hint repeat-note">Repeats are allowed, including within a draw.</p>}
       <div className="settings-divider" />
       <div className="section-label">Presentation</div>
-      <span className="field-label mt-5">Display view</span>
+      <span className="field-label">Display view</span>
       <div className="segmented" role="group" aria-label="Display view">
         <button aria-pressed={snapshot.presentation.view === 'current'} onClick={() => void actions.updatePresentation({ scale, view: 'current' })}>Current draw</button>
         <button aria-pressed={snapshot.presentation.view === 'history'} onClick={() => void actions.updatePresentation({ scale, view: 'history' })}>Full history</button>

@@ -59,8 +59,6 @@ const NumberGrid = memo(function NumberGrid({ numbers, count, total, cycling, se
   const dynamicCols = large ? Math.min(count, 5) : Math.min(count, count >= 10 ? 5 : 4);
   const cols = Math.max(1, dynamicCols);
   const style = {
-    '--tile-min': `${(large ? 206 : 112) * scale}px`,
-    '--presentation-tile-min': `${206 * scale}px`,
     '--display-scale': scale,
     '--tile-height': `${(large ? 226 : 146) * scale}px`,
     '--number-font': `${(large ? 108 : 66) * scale}px`,

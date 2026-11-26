@@ -24,9 +24,10 @@ WhizReveal has one Rust-owned native session and two React window roles. The con
 | `src/fonts.css` | Local Aeonik font faces and weights |
 | `src-tauri/windows/font-hooks.nsh` | Per-user font registration, preservation, and owned-file cleanup |
 | `src/components/RevealCanvas.tsx` | Responsive number grid, decorative cycling, Framer Motion reveal and tile sheen, full history |
-| `src/styles.css` | Five-color theme, layout, custom scrollbars, responsive rules |
-| `src/immersive.css` | Layered surfaces, dimensional number tiles, reveal sheen, and responsive depth treatment |
-| `src/controller-typography.css` | Controller-only text scaling and responsive typography |
+| `src/reset.css` | Element reset in a cascade layer (see [CSS architecture](#css-architecture)) |
+| `src/styles.css` | Global defaults, controller shell and its text-scale tokens, number tiles and reveal sheen, history, dialogs, audience display, controller breakpoints |
+| `src/controller-typography.css` | Controller-only text sizes, the layout adjustments that let larger text fit, and the text-size control |
+| `src/cinematic-scene.css` | The stage: sculpture host, CSS fallback, and how strongly the sculpture reads in each mode and draw state |
 | `src/hooks/useRaffle.ts` | Subscribe-before-fetch connection, revision guard, action state and errors |
 | `src/hooks/useControllerTextSize.ts` | Local text-size preference and persistence |
 | `src/lib/bridge.ts` | Tauri invoke/events adapter and browser preview transport |
@@ -106,7 +107,7 @@ The controller is titled **WhizReveal - Controller**. The secondary window is ti
 
 Rust selects the first enumerated monitor whose physical position differs from the controller's current monitor. It falls back to the current or first monitor. Position and size use physical coordinates to account for negative monitor origins and mixed DPI. The window is positioned while hidden, then shown fullscreen. Repeated launches reuse it, and controller destruction closes it.
 
-The React display supports Escape to leave fullscreen, F11 to toggle fullscreen, and a discreet hover/focus control. CSS grid wraps numbers to the available width. Vertical scrolling remains available for large draws and history. The display scale changes number/tile sizing; it is not a transform that crops the scrollable canvas.
+The React display supports Escape to leave fullscreen, F11 to toggle fullscreen, and a discreet hover/focus control. Flex wrapping fits numbers to the available width and centers incomplete rows. Vertical scrolling remains available for large draws and history. The display scale changes number/tile sizing; it is not a transform that crops the scrollable canvas.
 
 ## Controller typography and visual depth
 
@@ -115,6 +116,40 @@ The controller's text preference ranges from 90% to 150% in 10% increments and r
 Controller typography scales through scoped CSS rules instead of zooming the entire window. Form labels, buttons, history copy, and the reset dialog follow the preference. Preview numbers and audience numbers retain their own sizing rules; the existing presentation scale remains responsible for audience number sizing.
 
 The interface uses layered surfaces and restrained spatial effects within the five-color palette. `ImmersiveStage` moves only its decorative backdrop in response to a mouse pointer and the draw lifecycle; number results keep a stable plane. The score (`draw-sound.ts`) and the stage take the reveal moment and the silent pre-reveal breath from the same `stage-motion.ts` helpers, so sound and light cannot disagree about when a draw is revealed. `RevealCanvas` uses the same detector for the tile sheen, so the sheen plays only for a reveal that window watched, never for restored results, a view switch or a remount. It remembers only reveals that will actually sheen, and its number grids are memoised, so starting and ending a sheen re-render only the grid that plays it, never a large draw or the rest of Full history. The audience view remains focused on numbers, and the draw animation remains rapid 2D number cycling followed by a spring reveal. Reduced-motion preferences suppress decorative motion. Aeonik is bundled through `src/fonts.css`, so typography does not require a remote font request. The installer also registers the fonts for the current Windows user; see the font provenance document. See [the design notes](design.md) for the rationale.
+
+## CSS architecture
+
+The interface is styled with plain CSS; Vite bundles and minifies it into one stylesheet. Each selector has one rule, in the file that owns it, plus its overrides in that file's breakpoint blocks. The one deliberate exception is `controller-typography.css`, which adds a `.controller-shell`-scoped rule to some `styles.css` selectors (`.app-footer`, `.draw-button`, `.input-shell` and others) for their text size and the spacing and wrapping that larger text needs. In cascade order:
+
+| File | Imported by | Owns |
+| --- | --- | --- |
+| `src/cinematic-scene.css` | `ImmersiveStage.tsx` | The stage, the sculpture host and CSS fallback, sculpture opacity per mode and draw state, the preview's bottom fade |
+| `src/manual-guide.css` | `ManualGuide.tsx` | Guide trigger and dialog |
+| `src/history-export.css` | `HistoryExportButton.tsx` | Export PDF button and status |
+| `src/controller-typography.css` | `Controller.tsx` | Controller text sizes; the spacing, wrapping and shrinking that let larger text fit; the text-size control's own styling |
+| `src/sound-controls.css` | `SoundControls.tsx` | Sound settings trigger and dialog |
+| `src/welcome.css` | `WelcomeScreen.tsx` | Welcome screen, including its full-screen stage |
+| `src/fonts.css`, `src/reset.css`, `src/styles.css` | `main.tsx` | Fonts; the element reset; everything else (global defaults, controller shell, buttons, parameters, preview panel, number tiles and sheen, history, footer, dialogs, display, loading screen) |
+
+`main.tsx` imports `App` before its own stylesheets, and modules evaluate their imports first, so the component stylesheets precede `styles.css` in development and in the built CSS alike. A component stylesheet that adjusts a class from `styles.css`, such as `.secondary-button`, therefore needs a more specific selector; `controller-typography.css` scopes its rules under `.controller-shell` for this reason. Within `styles.css`, variants follow the rule they refine (`.launch-button` and `.sound-button` after `.secondary-button`). `reset.css` keeps only those rules of Tailwind's preflight that reach elements the app renders, inside `@layer base`, so any app rule overrides it.
+
+Controller text sizes come from tokens declared on `.controller-shell`: `--controller-text-2xs` to `--controller-text-lg` (9 to 14 px) times `--controller-text-scale`. Most are assigned in `controller-typography.css`; a few stay with their rule in `styles.css`: `.duration-select` and `.stage-welcome p` scale their own 13 and 12 px, and some text keeps a fixed size that does not follow the text-size preference, such as the stage heading (`.stage-welcome h1`), the preview baseline's caption, the history view's draw state and the error toast. The display sizes numbers from its own variables, set by `RevealCanvas` (`--tile-height`, `--number-font`, `--grid-*`, `--display-scale`).
+
+| Breakpoint | Used by | Change |
+| --- | --- | --- |
+| `min-width: 1500px` | Controller, welcome | Wider side columns and gaps, taller preview; more room around the welcome copy |
+| `max-width: 1150px` | Controller | Narrower fixed side columns, tighter preview padding |
+| `max-width: 1000px` | Controller, Export PDF | Session history moves below the parameters and draw area; its entries form a grid |
+| `max-width: 900px` and `min-width: 701px` | Welcome | Tighter two-column welcome |
+| `max-height: 720px` and `min-width: 701px` | Welcome | Compact vertical spacing |
+| `max-width: 700px` | Welcome | One centered column |
+| `max-width: 640px` | Guide dialog | Near full-width dialog, one-column language list |
+| `max-width: 620px` | Controller, its text sizes, Guide trigger | One column; the top-bar actions take a full row |
+| `max-width: 420px` | Welcome | Entry buttons stack |
+
+The controller no longer uses 900 px: its one remaining effect, the empty history spanning the history grid, now applies from 1000 px, where that grid starts, with the same layout. Moving the welcome's 900, 700 and 420 px or the guide dialog's 640 px onto the controller's breakpoints would change those layouts at the widths in between, so they remain; they are the candidates for merging in a later change that may alter visuals.
+
+Tailwind CSS was removed. The app used only three of its utilities (`sr-only`, now a plain rule in `styles.css`; `mt-5` and `mt-6`, now the field-group spacing rules beside `.field-label`), its preflight (now `reset.css`), and a theme declaring the palette and font stack, which `styles.css` already spelled out. Its scanner also generated about twenty unused utility classes from words in the source, and its build step ran an extra Lightning CSS pass over `styles.css` alone; that pass added no vendor prefixes (it only dropped redundant ones), so WebKit on macOS receives the same declarations. Keeping Tailwind for its preflight alone would have kept a build plugin, two dependencies and those generated classes for about fifteen lines of reset. The switch was checked against the previous build with screenshots and every element's computed style at nine window sizes, from 1920×1080 to 400×800: the pixels match apart from software-rendering noise, and the computed styles differ only in Tailwind's unused custom properties, the grid template of `.number-grid` (a flex container, so it never applied), and how the stacked history grid at 901–1000 px sizes its empty tracks, with the same layout.
 
 ## Browser preview boundary
 

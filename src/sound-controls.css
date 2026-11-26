@@ -12,5 +12,5 @@
 .sound-dialog output { color:#5D6F82; }
 .sound-dialog input[type=range] { width:100%; accent-color:#E7EEF5; }
 .sound-dialog-actions { display:flex; justify-content:space-between; gap:12px; margin-top:28px; }
-.sound-dialog-actions button { display:flex; align-items:center; gap:8px; font-size:12px; }
+.sound-dialog-actions button { display:flex; align-items:center; gap:8px; }
 .sound-dialog .sound-output-note { margin:22px 0 0; font-size:11px; }
