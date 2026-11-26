@@ -123,3 +123,12 @@ Native Save-dialog interaction, real-Mac Gatekeeper acceptance, and physical mul
 - Escape on a windowed audience display no longer resets its size and title bar; it only exits fullscreen.
 - Controller Unique drawn and Remaining counts exclude the in-progress draw, matching Session history until the reveal.
 - These fixes were checked by code review and automated checks. Physical multi-monitor behavior was not retested.
+
+## Visual regression suite
+
+- The first baselines were generated on Windows 11 with Playwright 1.65.1's headless Chromium and SwiftShader WebGL, and inspected by eye. With history times masked and a tolerance of 1% of the page, the suite's 11 tests passed in every run on the same machine: three full runs (the first with an empty Vite dependency cache, as on a fresh CI checkout), a CI-mode run of each test twice on two workers, and, restricted to four CPU threads by processor affinity, each test twice on one worker (the CI setting) and on two. No test failed or needed a retry.
+- Review found that 1% (about 13,000 pixels at 1440×900) let a wrong winner on the stage or display, a changed stat or a changed button label pass, and that the mask's width followed the time of day. The tolerance became 50 pixels, the specs now check the drawn numbers and session counts as text, and each test's clock starts at a fixed time so history times render unmasked.
+- The baselines (12 screenshots from 9 tests) were then regenerated and inspected by eye. Against them, a run at zero tolerance matched every screenshot to the pixel; two full runs at the configured tolerance, and a CI-mode run of each test twice on one worker on port 5419 (`VISUAL_PORT`), all passed with no failure or retry.
+- Six workers at once on the 12-thread machine timed out three tests: SwiftShader starved their pages of CPU. The configuration therefore uses one worker per four threads locally and one worker on CI.
+- A deliberate console error, and an uncaught exception in a second page, each failed their test.
+- The GitHub workflow had not yet run on a hosted Windows runner when this was recorded. If that runner rasterizes text differently from Windows 11, the actual images in its report become the baselines.

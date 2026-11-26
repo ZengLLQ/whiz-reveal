@@ -41,6 +41,9 @@ WhizReveal has one Rust-owned native session and two React window roles. The con
 | `src-tauri/src/storage.rs` | File lock, validated loading, atomic session saves |
 | `src-tauri/tauri.conf.json` | Controller window, CSP, frontend commands, NSIS bundle |
 | `src-tauri/capabilities/` | Separate controller/display event and window permissions |
+| `playwright.config.ts` | Visual regression settings: headless Chromium with SwiftShader WebGL, 1440×900, reduced motion, screenshot tolerance, its own Vite server on port 4321 (`VISUAL_PORT` overrides it) |
+| `tests/visual/fixtures.ts` | Per-page seeded randomness, a wall clock starting at a fixed time and fixed device preferences, the console-error check, the drawn-number assertion, and waits for fonts, the session and a painted stage |
+| `tests/visual/*.spec.ts` | Controller, display and stage specs; their Windows baselines are in `tests/visual/__screenshots__` |
 
 ## Native state and IPC
 
@@ -161,7 +164,7 @@ Preview randomness uses `crypto.getRandomValues` with rejection sampling to avoi
 
 ## Validation scope
 
-Run the commands in the [README](../README.md#checks) for frontend type checks, lint (`eslint.config.js`, including React's hook rules), preview unit tests, production frontend compilation, and native Rust tests. For release acceptance, also open the built Windows app and exercise the full controller/display flow, mixed-DPI monitor placement, fullscreen shortcuts, session restoration, pool exhaustion, and large scrollable draws. Build commands and expected output paths are instructions, not a record that a particular release has passed those checks.
+Run the commands in the [README](../README.md#checks) for frontend type checks, lint (`eslint.config.js`, including React's hook rules), preview unit tests, production frontend compilation, visual regression screenshots of the browser preview, and native Rust tests. The visual suite replaces the preview's sources of randomness (`crypto.getRandomValues`, `crypto.randomUUID` and `Math.random`) with seeded generators before the app loads, so its draws and session IDs repeat. It also shifts `Date` to start at a fixed time, leaving timers, animation frames and `performance.now` native, so history times repeat too; the stage's dust is already seeded (`stage-dust.ts`). It drives the browser preview only, so it does not exercise Tauri IPC, native windows or packaging. For release acceptance, also open the built Windows app and exercise the full controller/display flow, mixed-DPI monitor placement, fullscreen shortcuts, session restoration, pool exhaustion, and large scrollable draws. Build commands and expected output paths are instructions, not a record that a particular release has passed those checks.
 
 ## Display toggle lifecycle
 

@@ -11,6 +11,11 @@ release/
 tmp/
 *.stackdump
 
+# Playwright visual regression output (baselines in tests/visual/__screenshots__ are tracked)
+test-results/
+playwright-report/
+blob-report/
+
 # Local assistant and tooling state
 .claude/*
 !.claude/settings.json

@@ -128,12 +128,23 @@ npm run typecheck
 npm run lint
 npm test
 npm run build
+npm run test:visual
 cargo test --manifest-path src-tauri/Cargo.toml
 ```
 
-`npm run lint` runs ESLint (`eslint.config.js`): the JavaScript and typescript-eslint recommended rules, React's rules of hooks and exhaustive effect dependencies as errors, and a Fast Refresh export check as a warning. The Windows and macOS workflows run it before tests and packaging.
+`npm run lint` runs ESLint (`eslint.config.js`): the JavaScript and typescript-eslint recommended rules, React's rules of hooks and exhaustive effect dependencies as errors, and a Fast Refresh export check as a warning. It also covers the Playwright specs and config. The Windows and macOS workflows run it before tests and packaging.
 
 JavaScript tests exercise preview sampling, constraints, revision ordering, synchronization, controller text-size preference normalization, and the palette's text contrast and minimum text sizes. Rust tests exercise native drawing, validation, session persistence, recovery, and file locking. These checks do not replace native UI testing on the intended presentation monitors.
+
+### Visual regression tests
+
+`npm run test:visual` runs the Playwright suite in `tests/visual/` (configured in `playwright.config.ts`) against the browser preview. Install its browser once with `npx playwright install chromium`. The suite starts its own Vite server on port 4321, so a running `npm run dev` or `npm run desktop` on port 1420 is left alone, and opens each test in a fresh headless Chromium context at 1440×900, rendering WebGL with SwiftShader, Chromium's CPU renderer. Run one suite at a time per checkout: a run owns its port and clears `test-results/` when it starts. To run the suites of two checkouts at once, give one of them another port with the `VISUAL_PORT` environment variable.
+
+It compares screenshots with the baselines in `tests/visual/__screenshots__`: the welcome screen; the controller idle, after a draw, in Full history after two draws, at 150% text size and in an 860×620 window; the guide and New session dialogs; and the display's current draw and Full history. Screenshots are taken with reduced motion, so the stage renders one still frame and number tiles skip their spring. Every page draws from seeded randomness and its clock starts at 09:00 UTC on a fixed date, so each run draws the same numbers and shows the same history times; sound starts off. A screenshot fails when more than 50 pixels differ from its baseline. Repeated runs on one machine match to the pixel, but one changed digit can move fewer pixels than that, so the specs also check the drawn numbers and the session counts as text. Two behaviour tests run with motion on: the WebGL stage paints and hides its CSS fallback, and both windows' stages show the drawing state only while a draw runs. A console error or uncaught exception on any page fails its test.
+
+After an intended visual change, run `npm run test:visual:update`, review the changed images in `tests/visual/__screenshots__`, and commit them with the change. When a run fails, `npx playwright show-report` shows the expected, actual and difference images. The baselines are Windows renders (their names end in `-win32`); macOS and Linux rasterize text and WebGL differently and would need baselines of their own.
+
+The **Visual regression** workflow (`.github/workflows/visual.yml`) runs the suite on Windows for every pull request and on demand, and uploads the Playwright report when it fails. The release workflows do not run it.
 
 See [the architecture notes](docs/architecture.md) for the project layout, the IPC contract, and how the stylesheets are organized.
 

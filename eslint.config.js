@@ -12,6 +12,7 @@ export default defineConfig([
     'node_modules/',
     'test-results/',
     'playwright-report/',
+    'blob-report/',
     // Git-ignored local output, and the assistant worktrees that live under .claude/
     // in the main checkout (each has its own dist/ and src/).
     'release/',
@@ -44,5 +45,10 @@ export default defineConfig([
     // Build tooling runs in Node, not in the webview.
     files: ['*.config.{js,ts}'],
     languageOptions: { globals: globals.node },
+  },
+  {
+    // Playwright specs run in Node; the callbacks they pass to page.evaluate run in the page.
+    files: ['tests/**/*.ts'],
+    languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },
 ]);
