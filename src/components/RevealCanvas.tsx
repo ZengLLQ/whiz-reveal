@@ -1,6 +1,7 @@
-import { memo, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
+import { memo, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import type { DrawRecord, Snapshot } from '../lib/types';
+import { cyclingFrame, cyclingValue, sameNumbers } from '../lib/number-grid';
 import { createRevealTracker, detectRevealedDraw } from '../lib/stage-motion';
 import { SHEEN_DURATION_S, SHEEN_WINDOW_MS, revealGetsSheen, tileRevealDelay, tileSheenDelay } from '../lib/tile-reveal';
 
@@ -34,22 +35,83 @@ function useWatchedReveal(snapshot: Snapshot, reducedMotion: boolean): DrawRecor
   return watched?.draw ?? null;
 }
 
+/** Writes a tile's decorative digits into its existing text node, without React. */
+function writeDigits(value: HTMLElement, text: string) {
+  const node = value.firstChild;
+  if (node && node.nodeType === Node.TEXT_NODE && !node.nextSibling) {
+    if (node.nodeValue !== text) node.nodeValue = text;
+  } else value.textContent = text;
+}
+
 /**
- * Memoised: clearing a sheen re-renders only the grid whose `sheen` changed, never
- * every grid in Full history. Its other props are primitives or the snapshot's own
- * arrays, which keep their identity until the snapshot changes.
+ * Decorative cycling without React: one animation-frame loop per cycling grid rewrites
+ * the digits of its plain tiles every CYCLE_INTERVAL_MS, so a 500-number draw costs no
+ * re-render while it cycles. React renders frame 0 and never sees the later values,
+ * which only ever reach aria-hidden text. Only tiles on (or near) screen are rewritten;
+ * one scrolled into view picks up the cycle on its next frame.
  */
-const NumberGrid = memo(function NumberGrid({ numbers, count, total, cycling, seed, large = false, scale = 1, sheen = false }: {
+function useDecorativeCycling(gridRef: RefObject<HTMLDivElement | null>, active: boolean, seed: string, count: number, total: number) {
+  useEffect(() => {
+    const grid = gridRef.current;
+    if (!active || !grid) return;
+    const tiles = Array.from(grid.children) as HTMLElement[];
+    const values = tiles.map((tile) => tile.firstElementChild as HTMLElement | null);
+    const canObserve = typeof IntersectionObserver !== 'undefined';
+    const onScreen = tiles.map(() => !canObserve);
+    let observer: IntersectionObserver | undefined;
+    if (canObserve) {
+      const indexOf = new Map(tiles.map((tile, index) => [tile, index] as const));
+      observer = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          const index = indexOf.get(entry.target as HTMLElement);
+          if (index !== undefined) onScreen[index] = entry.isIntersecting;
+        }
+      }, { root: grid.closest('.reveal-canvas'), rootMargin: '25% 0px' });
+      for (const tile of tiles) observer.observe(tile);
+    }
+    let start: number | undefined;
+    let shown = 0;
+    let request = 0;
+    const tick = (now: number) => {
+      start ??= now;
+      const frame = cyclingFrame(now - start);
+      if (frame !== shown) {
+        shown = frame;
+        values.forEach((value, index) => {
+          if (value && onScreen[index]) writeDigits(value, String(cyclingValue(frame, index, total)));
+        });
+      }
+      request = requestAnimationFrame(tick);
+    };
+    request = requestAnimationFrame(tick);
+    return () => {
+      cancelAnimationFrame(request);
+      observer?.disconnect();
+    };
+  }, [gridRef, active, seed, count, total]);
+}
+
+type NumberGridProps = {
   numbers: number[]; count: number; total: number; cycling: boolean;
   seed: string; large?: boolean; scale?: number; sheen?: boolean;
-}) {
+};
+
+/** Every snapshot arrives as new objects, so a draw's numbers are compared by content. */
+function sameGridProps(a: NumberGridProps, b: NumberGridProps) {
+  return a.count === b.count && a.total === b.total && a.cycling === b.cycling && a.seed === b.seed
+    && a.large === b.large && a.scale === b.scale && a.sheen === b.sheen && sameNumbers(a.numbers, b.numbers);
+}
+
+/**
+ * Memoised by content: a new snapshot (a draw starting or ending, a sheen clearing)
+ * re-renders only the grid whose draw or state changed, never every grid in Full history.
+ * Cycling tiles are plain elements driven by useDecorativeCycling; motion components
+ * mount only for the spring reveal.
+ */
+const NumberGrid = memo(function NumberGrid({ numbers, count, total, cycling, seed, large = false, scale = 1, sheen = false }: NumberGridProps) {
   const reducedMotion = useReducedMotion();
-  const [frame, setFrame] = useState(0);
-  useEffect(() => {
-    if (!cycling || reducedMotion) return;
-    const timer = window.setInterval(() => setFrame((value) => value + 1), 68);
-    return () => window.clearInterval(timer);
-  }, [cycling, reducedMotion]);
+  const gridRef = useRef<HTMLDivElement>(null);
+  useDecorativeCycling(gridRef, cycling && !reducedMotion, seed, count, total);
 
   // Committed numbers spring in. Never while cycling or for reduced motion.
   const entering = !reducedMotion && !cycling && numbers.length > 0;
@@ -69,26 +131,36 @@ const NumberGrid = memo(function NumberGrid({ numbers, count, total, cycling, se
   } as CSSProperties;
 
   return (
-    <div className={`number-grid ${cycling ? 'is-cycling' : ''}`} style={style}
+    <div ref={gridRef} className={`number-grid ${cycling ? 'is-cycling' : ''}`} style={style}
       role="group" aria-label={cycling ? 'Drawing numbers' : numbers.length ? 'Drawn numbers' : 'Waiting for a draw'}>
       {Array.from({ length: count }, (_, index) => {
-        // These values are decorative only. Winners always come from the draw engine.
-        const shuffled = ((frame * (total > 1 && total % 73 === 0 ? 71 : 73) + index * 41 + 17) % total) + 1;
-        const value = cycling ? reducedMotion ? '·' : shuffled : numbers[index] ?? '—';
+        const key = `${seed}-${index}-${cycling ? 'cycling' : 'revealed'}`;
+        // Cycling values are decorative only (frame 0 here; later frames are written in place). Winners always come from the draw engine.
+        if (cycling) return (
+          <div className="number-tile" key={key}>
+            <span className="number-value" aria-hidden>{reducedMotion ? '·' : cyclingValue(0, index, total)}</span>
+          </div>
+        );
+        const value = numbers[index] ?? '—';
+        const className = `number-tile ${!numbers.length ? 'is-empty' : ''} ${sheening ? 'has-sheen' : ''}`;
+        if (!entering) return (
+          <div className={className} key={key}>
+            <span className="number-value" aria-hidden={false}>{value}</span>
+          </div>
+        );
         return (
-          <motion.div className={`number-tile ${!numbers.length && !cycling ? 'is-empty' : ''} ${sheening ? 'has-sheen' : ''}`}
-            key={`${seed}-${index}-${cycling ? 'cycling' : 'revealed'}`}
+          <motion.div className={className} key={key}
             style={sheening ? { '--sheen-delay': `${tileSheenDelay(index)}s`, '--sheen-duration': `${SHEEN_DURATION_S}s` } as CSSProperties : undefined}
-            initial={entering ? { opacity: 0, scale: 0.86 } : false}
+            initial={{ opacity: 0, scale: 0.86 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ type: 'spring', stiffness: 290, damping: 22, delay: tileRevealDelay(index) }}>
-            <span className="number-value" aria-hidden={cycling}>{value}</span>
+            <span className="number-value" aria-hidden={false}>{value}</span>
           </motion.div>
         );
       })}
     </div>
   );
-});
+}, sameGridProps);
 
 function drawOrdinal(id: number) {
   const lastTwoDigits = id % 100;
