@@ -2,6 +2,13 @@
    CSS only decides how strongly it reads, so the render is never scaled as a bitmap. */
 .cinematic-stage { position: relative; isolation: isolate; overflow: hidden; }
 .cinematic-stage > .stage-sculpture { inset: 0 0 44px 0; z-index: 0; opacity: 0.82; transition: opacity 600ms ease; }
+/* The preview's canvas stops above its baseline row; its last 48px fade into the panel so the light pool,
+   the dust and a tucked sculpture dissolve there instead of ending in a straight cut. The fade is the panel's
+   own colour laid over the sculpture layer: over that plain panel it gives the same pixels as masking the
+   canvas, at any of the sculpture's opacities. It sits outside .stage-sculpture, so that layer keeps a single
+   composited child and its opacity needs no offscreen pass; a mask, or a fade inside it, costs the compositor
+   one on every frame. Text that shares the stage (.reveal-canvas, .stage-welcome, .preview-baseline) sits above it. */
+.cinematic-stage.preview-stage::after { content: ''; position: absolute; left: 0; right: 0; bottom: 44px; height: 48px; z-index: 0; pointer-events: none; background: linear-gradient(to top, #171C22, rgba(23, 28, 34, 0)); }
 .cinematic-stage.presentation-stage > .stage-sculpture { inset: 0; opacity: 0.55; }
 .cinematic-stage.welcome-stage > .stage-sculpture { inset: 0; opacity: 1; }
 /* Resting beside results: wait for the reveal's light sweep to pass, then recede. */

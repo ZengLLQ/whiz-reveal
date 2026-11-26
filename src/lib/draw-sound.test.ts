@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { DrawSound, DrawSoundTracker } from './draw-sound';
 import { createPreviewSnapshot, drawPreview, finishPreviewDraw, resetPreviewSession } from './preview-model';
+import { createRevealTracker, detectReveal, isPreRevealBreath, preRevealBreathMs } from './stage-motion';
 
 describe('draw sound lifecycle', () => {
   const drawing = () => drawPreview(createPreviewSnapshot('test'), 1000, () => 0);
@@ -20,6 +21,30 @@ describe('draw sound lifecycle', () => {
     const tracker = new DrawSoundTracker();
     tracker.update(drawing());
     expect(tracker.update(resetPreviewSession(finishPreviewDraw(drawing(), 3000), 'next'))).toBe('stop');
+  });
+  it('follows a draw that was already running when it first saw the session', () => {
+    const tracker = new DrawSoundTracker();
+    const active = drawing();
+    expect(tracker.update(active)).toBe('shuffle');
+    expect(tracker.update(finishPreviewDraw(active, 3000))).toBe('reveal');
+  });
+  it('agrees with the stage on every reveal, so the chord and the light sweep land together', () => {
+    const first = drawing();
+    const firstDone = finishPreviewDraw(first, 3000);
+    const second = drawPreview(firstDone, 4000, () => 1);
+    const secondDone = finishPreviewDraw(second, 6000);
+    const replaced = resetPreviewSession(secondDone, 'next');
+    const third = drawPreview(replaced, 7000, () => 2);
+    const sequence = [createPreviewSnapshot('test'), first, first, firstDone, firstDone, second, secondDone,
+      replaced, third, resetPreviewSession(finishPreviewDraw(third, 9000), 'later'), finishPreviewDraw(third, 9000)];
+    const sound = new DrawSoundTracker();
+    const stage = createRevealTracker();
+    const cues = sequence.map((snapshot) => {
+      const cue = sound.update(snapshot);
+      expect(cue === 'reveal').toBe(detectReveal(stage, snapshot));
+      return cue;
+    });
+    expect(cues.filter((cue) => cue === 'reveal')).toHaveLength(2);
   });
 });
 
@@ -59,6 +84,22 @@ describe('synthesized audio scheduling', () => {
     expect(voices).toHaveLength(count);
     engine.reveal(); expect(voices).toHaveLength(count + 7);
     engine.stop(); expect(voices.every(voice => voice.stop.mock.calls.length >= 2)).toBe(true);
+  });
+  it('keeps the score silent through the same pre-reveal breath the stage holds', () => {
+    vi.useFakeTimers(); vi.setSystemTime(1000);
+    const { engine, voices } = setup(); engine.unlock();
+    const active = drawPreview(createPreviewSnapshot('test'), 1000, () => 0);
+    const { startedAt, durationMs } = active.activeDraw!;
+    const breathStarts = durationMs - preRevealBreathMs(durationMs);
+    engine.shuffle(startedAt, durationMs);
+    // The last beat tick before the breath (ticks run every 70 ms).
+    vi.advanceTimersByTime(Math.floor(breathStarts / 70) * 70 + 1);
+    expect(isPreRevealBreath(active, Date.now())).toBe(false);
+    const beforeBreath = voices.length;
+    expect(beforeBreath).toBeGreaterThan(0);
+    vi.advanceTimersByTime(durationMs - 1 - (Date.now() - startedAt));
+    expect(isPreRevealBreath(active, Date.now())).toBe(true);
+    expect(voices).toHaveLength(beforeBreath);
   });
   it('continues without throwing when audio hardware is unavailable', () => {
     vi.stubGlobal('AudioContext', class { constructor() { throw new Error('Unavailable'); } });

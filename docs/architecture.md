@@ -10,16 +10,22 @@ WhizReveal has one Rust-owned native session and two React window roles. The con
 | `src/components/Controller.tsx` | Inputs, apply action, draw trigger, session history, reset confirmation |
 | `src/components/ControllerTextSize.tsx` | Accessible text-size controls for the controller |
 | `src/components/ImmersiveStage.tsx` | Stable preview composition and pointer input for the sculpture |
-| `src/components/StageSculpture.tsx` | Lends a container to the shared renderer, reduced-motion input and CSS fallback |
-| `src/lib/stage-renderer.ts` | One lazily loaded Three.js renderer per window, palette shader, frame budget, draw choreography |
-| `src/lib/stage-motion.ts` | Pure, tested helpers: damping, draw energy, reveal detection, sweep timing and layout targets |
+| `src/components/StageSculpture.tsx` | Lends a container to the shared renderer, reduced-motion input and CSS fallback; its `data-scene-source` attribute reports what is showing (`shader`, `physical` or `fallback`) |
+| `src/lib/stage-renderer.ts` | One lazily loaded Three.js renderer per window: palette shader (or the `?stage=physical` comparison), light pool, dust, camera dolly, frame budget, render resolution, draw choreography |
+| `src/lib/stage-motion.ts` | Pure, tested helpers: damping, draw energy, the pre-reveal breath, reveal detection (shared with the score and the tile sheen), sweep, push, glow and dolly timing, layout targets, when the choreography has settled |
+| `src/lib/stage-look.ts` | Reads the `?stage=physical` comparison flag |
+| `src/lib/stage-dust.ts` | Pure, tested dust helpers: the seeded field (positions, palette tones, sizes and phases) and the depth band over which specks clear the form's outline |
+| `src/lib/sculpture-geometry.ts` | The sculpture's knot dimensions, its furthest reach, and the outline the camera sees; the renderer builds the knot from them and the dust clears that outline |
+| `src/lib/stage-resolution.ts` | Render resolution: the 1.5 pixel-ratio cap, and a pixel budget for software (CPU) WebGL renderers, detected from the renderer's name |
+| `src/lib/draw-sound.ts` | Local Web Audio score; its cues reuse the stage's reveal detection and breath |
+| `src/lib/tile-reveal.ts` | Spring and sheen timing for revealed number tiles, and which reveals get the sheen (none above 40 numbers or under reduced motion) |
 | `src/components/ManualGuide.tsx` | Language chooser, accessible modal, guide navigation and focus restore |
 | `src/lib/manual-content.ts` | Offline English, Indonesian, and Simplified Chinese guide copy |
 | `src/fonts.css` | Local Aeonik font faces and weights |
 | `src-tauri/windows/font-hooks.nsh` | Per-user font registration, preservation, and owned-file cleanup |
-| `src/components/RevealCanvas.tsx` | Responsive number grid, decorative cycling, Framer Motion reveal, full history |
+| `src/components/RevealCanvas.tsx` | Responsive number grid, decorative cycling, Framer Motion reveal and tile sheen, full history |
 | `src/styles.css` | Five-color theme, layout, custom scrollbars, responsive rules |
-| `src/immersive.css` | Layered surfaces, dimensional number tiles, and responsive depth treatment |
+| `src/immersive.css` | Layered surfaces, dimensional number tiles, reveal sheen, and responsive depth treatment |
 | `src/controller-typography.css` | Controller-only text scaling and responsive typography |
 | `src/hooks/useRaffle.ts` | Subscribe-before-fetch connection, revision guard, action state and errors |
 | `src/hooks/useControllerTextSize.ts` | Local text-size preference and persistence |
@@ -108,7 +114,7 @@ The controller's text preference ranges from 90% to 150% in 10% increments and r
 
 Controller typography scales through scoped CSS rules instead of zooming the entire window. Form labels, buttons, history copy, and the reset dialog follow the preference. Preview numbers and audience numbers retain their own sizing rules; the existing presentation scale remains responsible for audience number sizing.
 
-The interface uses layered surfaces and restrained spatial effects within the five-color palette. `ImmersiveStage` moves only its decorative backdrop in response to a mouse pointer and the draw lifecycle; number results keep a stable plane. The audience view remains focused on numbers, and the draw animation remains rapid 2D number cycling followed by a spring reveal. Reduced-motion preferences suppress decorative motion. Aeonik is bundled through `src/fonts.css`, so typography does not require a remote font request. The installer also registers the fonts for the current Windows user; see the font provenance document. See [the design notes](design.md) for the rationale.
+The interface uses layered surfaces and restrained spatial effects within the five-color palette. `ImmersiveStage` moves only its decorative backdrop in response to a mouse pointer and the draw lifecycle; number results keep a stable plane. The score (`draw-sound.ts`) and the stage take the reveal moment and the silent pre-reveal breath from the same `stage-motion.ts` helpers, so sound and light cannot disagree about when a draw is revealed. `RevealCanvas` uses the same detector for the tile sheen, so the sheen plays only for a reveal that window watched, never for restored results, a view switch or a remount. It remembers only reveals that will actually sheen, and its number grids are memoised, so starting and ending a sheen re-render only the grid that plays it, never a large draw or the rest of Full history. The audience view remains focused on numbers, and the draw animation remains rapid 2D number cycling followed by a spring reveal. Reduced-motion preferences suppress decorative motion. Aeonik is bundled through `src/fonts.css`, so typography does not require a remote font request. The installer also registers the fonts for the current Windows user; see the font provenance document. See [the design notes](design.md) for the rationale.
 
 ## Browser preview boundary
 

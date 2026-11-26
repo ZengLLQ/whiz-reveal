@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type RefObject } from 'react';
 import { useReducedMotion } from 'framer-motion';
 import type { Snapshot } from '../lib/types';
 import type { StageMode } from '../lib/stage-motion';
-import { acquireStage, invalidateStage, isStageReady, type StageInputs, type StagePointer } from '../lib/stage-renderer';
+import { acquireStage, invalidateStage, isStageReady, stageLook, type StageInputs, type StagePointer } from '../lib/stage-renderer';
 
 /**
  * A compact, offline shader sculpture. It uses no model downloads or texture assets.
@@ -28,7 +28,9 @@ export function StageSculpture({ pointer, mode, occupied, snapshot }: {
   useEffect(() => { invalidateStage(); }, [mode, occupied, snapshot, reducedMotion]);
 
   return (
-    <div className={`stage-sculpture ${ready ? 'sculpture-ready' : ''}`} aria-hidden="true" data-scene-source="shader">
+    // data-scene-source reports what is showing: the palette shader, the ?stage=physical comparison, or the CSS fallback.
+    <div className={`stage-sculpture ${ready ? 'sculpture-ready' : ''}`} aria-hidden="true"
+      data-scene-source={ready ? stageLook() ?? 'shader' : 'fallback'}>
       <div className="sculpture-fallback"><i /><i /><i /></div>
       <div className="sculpture-webgl" ref={host} />
     </div>

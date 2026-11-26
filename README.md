@@ -10,11 +10,11 @@ Local release packages are generated in `release/`: `WhizReveal.exe`, a portable
 
 The welcome screen offers **Enter with sound** and **Enter silently**, an interactive shader sculpture, a short camera transition, and **Skip intro**. **Skip welcome next time** saves a faster startup preference. The controller footer's **Welcome** button reopens it without resetting any results.
 
-The scene reacts to the selected draw duration in both windows: the sculpture comes forward and spins up as the draw builds, a single band of light sweeps across it at the reveal, and it then recedes beside the result. Numbers remain on a stable centered layer. Reduced-motion settings suppress decorative animation; a capped render resolution and a static fallback keep controls available on less capable graphics hardware.
+The scene reacts to the selected draw duration in both windows. The sculpture sits in a soft pool of light among slowly drifting dust. As the draw builds it comes forward, spins up and the camera eases closer. It exhales in the same short breath the score takes before the reveal. Then a single band of light sweeps across it, the dust drifts gently outward, and it recedes beside the result as one sheen crosses each number tile (for draws of up to 40 numbers). Numbers remain on a stable centered layer. Reduced-motion settings suppress decorative animation; a capped render resolution and a static fallback keep controls available on less capable graphics hardware.
 
 **Sound settings** provides separate Music and Effects volume controls and **Test sound**. Intro, ambience, tension, and reveal cues are composed locally with Web Audio. Only the controller plays audio, through the system's selected output. Nothing needs to stream from the internet.
 
-The stage uses the app's original Three.js shader sculpture pipeline. It is generated locally at runtime, works without model downloads, and keeps a lightweight CSS fallback for devices where WebGL is unavailable.
+The stage uses the app's original Three.js shader sculpture pipeline. It is generated locally at runtime, works without model downloads, and keeps a lightweight CSS fallback for devices where WebGL is unavailable. In the browser preview, adding `?stage=physical` to the URL swaps in a clear-coated physical material, lit by a locally generated environment, for side-by-side comparison; Launch Display carries the flag to the display window. The desktop app always uses the palette shader. See the [design notes](docs/design.md#physical-material-experiment).
 
 ## Run from source on Windows
 

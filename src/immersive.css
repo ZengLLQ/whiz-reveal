@@ -34,7 +34,7 @@
 .stage-sculpture { position: absolute; inset: 0 0 44px 0; pointer-events: none; z-index: 0; }
 .sculpture-webgl { position: absolute; inset: 0; }
 .sculpture-webgl canvas { display: block; width: 100%; height: 100%; }
-.stage-welcome { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding: 0 24px 20px; text-align: center; pointer-events: none; }
+.stage-welcome { position: relative; z-index: 1; flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding: 0 24px 20px; text-align: center; pointer-events: none; }
 .stage-welcome h1 { font-size: clamp(28px, 3vw, 46px); font-weight: 400; letter-spacing: -0.055em; line-height: 1.15; margin: 0 0 10px; }
 .stage-welcome p { color: #5D6F82; font-size: calc(12px * var(--controller-text-scale, 1)); margin: 0; line-height: 1.5; }
 .preview-baseline { padding: 17px 22px; gap: 10px; }
@@ -49,6 +49,20 @@
 .number-grid { padding-bottom: 5px; }
 .number-tile { border-radius: 15px; background: linear-gradient(140deg, #2A333D, #171C22 70%); border: 1px solid #2A333D; border-top-color: #5D6F82; box-shadow: 0 3px 0 #0B0D10; }
 .number-value { font-weight: 400; letter-spacing: -0.05em; text-shadow: none; }
+/* Reveal sheen: one diagonal pass of Primary light at low alpha, behind the digits, after each tile's
+   spring. RevealCanvas sets the class, delay and duration (tile-reveal.ts) only for the reveal this
+   window watched, and removes the class once it has played. Only a pseudo-element moves; the numbers never do.
+   It moves by transform alone, so the compositor slides a gradient rasterised once. The band's own
+   transparent ends bring it in and out at the tile's edges, so it animates no opacity, which would only
+   add compositing work. A sheen repainted on every frame (by background-position) instead kept a
+   software-rendered 1080p display below 30 fps for seconds after each reveal. */
+.number-tile.has-sheen { position: relative; overflow: hidden; }
+.number-tile.has-sheen > .number-value { position: relative; z-index: 1; }
+.number-tile.has-sheen::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; transform: translateX(-100%);
+  background: linear-gradient(112deg, transparent 32%, rgba(231, 238, 245, 0.06) 43%, rgba(231, 238, 245, 0.14) 50%, rgba(231, 238, 245, 0.06) 57%, transparent 68%);
+  animation: tile-sheen var(--sheen-duration, 720ms) cubic-bezier(0.45, 0, 0.25, 1) var(--sheen-delay, 0s) 1 both; }
+@keyframes tile-sheen { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) { .number-tile.has-sheen::after { display: none; animation: none; } }
 .is-empty .number-value { color: #5D6F82; }
 .session-stats { margin: 0; padding: 24px 0; }
 .session-stats > div { gap: 7px; }

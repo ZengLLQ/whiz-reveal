@@ -1,13 +1,16 @@
 import type { Snapshot } from './types';
+import { createRevealTracker, detectReveal, preRevealBreathMs } from './stage-motion';
 
-/** A restored result never emits a new reveal cue. */
+/**
+ * Turns snapshots into sound cues. Reveal detection is the stage's own
+ * (stage-motion.ts), so the reveal chord and the light sweep always agree:
+ * a restored result or a replaced session never emits a reveal cue.
+ */
 export class DrawSoundTracker {
-  private active: string | null = null;
+  private readonly reveals = createRevealTracker();
   update(snapshot: Snapshot): 'shuffle' | 'reveal' | 'stop' {
-    const key = snapshot.activeDraw ? `${snapshot.sessionId}/${snapshot.activeDraw.draw.id}` : null;
-    const previous = this.active; this.active = key;
-    if (key) return 'shuffle';
-    return previous && snapshot.history.some(draw => `${snapshot.sessionId}/${draw.id}` === previous) ? 'reveal' : 'stop';
+    if (detectReveal(this.reveals, snapshot)) return 'reveal';
+    return snapshot.activeDraw ? 'shuffle' : 'stop';
   }
 }
 export interface SoundPreferences { enabled: boolean; music: number; effects: number }
@@ -80,8 +83,8 @@ export class DrawSound {
     const tick=()=>{
       const elapsed=Date.now()-startedAt,progress=Math.max(0,elapsed/duration);
       if(progress>=1){this.clearDraw();return;}
-      // Reserve a short breath immediately before the actual reveal.
-      if(duration-elapsed<Math.min(240,duration*.12))return;
+      // Reserve a short breath immediately before the actual reveal; the stage exhales over the same window.
+      if(duration-elapsed<preRevealBreathMs(duration))return;
       const beat=Math.floor(elapsed/(330-progress*150));
       if(beat!==lastBeat){lastBeat=beat;this.tone(146.832*(beat%4===3?1.5:1),.23,.045+progress*.035,0,'effects','triangle');this.tone(55+progress*18,.18,.045);}
       const pad=Math.floor(elapsed/3000);if(pad!==lastPad){lastPad=pad;this.tone(220+progress*73.665,Math.min(3,(duration-elapsed)/1000),.035,0,'effects','triangle',.35);}
