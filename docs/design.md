@@ -12,21 +12,26 @@ Utility actions such as Guide, Launch display, and New session use compact upper
 
 ## Color and hierarchy
 
-The design uses five color tokens throughout:
+The design uses five color tokens throughout, plus one text-only derivative:
 
 | Token | Color | Use |
 | --- | --- | --- |
 | Canvas | `#0B0D10` | Main background and deepest surfaces |
 | Surface | `#171C22` | Panels and controls |
 | Edge | `#2A333D` | Borders and structural depth |
-| Muted | `#5D6F82` | Secondary details and accents |
+| Muted | `#5D6F82` | Borders, accents, icons, decorative text and disabled controls |
 | Primary | `#E7EEF5` | Numbers, readable labels, and highlights |
+| Muted text (derived, text only) | `#808F9F` | Informative secondary text: hints, captions, section labels, counts, times, dialog body copy |
+
+Muted text is Muted moved a quarter of the way toward Primary (`--color-muted-text` in `src/styles.css`; `MUTED_TEXT` in `src/lib/color-contrast.ts`, whose tests check the stylesheet against it). Muted itself reaches only 3.3:1 on Surface and 3.8:1 on Canvas, below the WCAG AA 4.5:1 for normal text; Muted text reaches 5.2:1 on Surface and 5.9:1 on Canvas while staying clearly quieter than Primary (14.6:1 on Surface). It is never used for fills, borders or icons. Muted remains for text that is decorative (the baseline arrow, the cycling and empty number placeholders) or disabled, where it marks the control as unavailable: a disabled input, Export PDF before any draw, the text-size buttons at their limits, and the footer actions during a draw (whose icons also dim from Muted to Edge, a second cue besides the text tone). The disabled draw button is the exception: its label explains the state (Drawing, Pool complete, Apply settings to draw), so it uses Muted text, and it is told apart from the enabled button by losing its Primary fill. Hover and selection states keep AA as well: Primary text never sits on a Muted fill (4.4:1). The primary button and the pressed Launch display button turn to an Edge fill with a Muted border on hover, Apply settings gains a Muted ring, and selected text is Canvas on Primary.
 
 Depth comes from mesh lighting, positioning, edges, and restrained shadows using these tokens. The stage adds no new colors, only these tokens at reduced opacity: the ambient dust is soft Edge and Muted specks, and every twelfth speck is a smaller Primary highlight that never exceeds 60% opacity at its core; the light pool behind the sculpture is Muted fading to Edge at no more than 46% opacity (warmed toward Primary only during the reveal); the reveal sheen on number tiles is Primary at no more than 14% opacity. The dust and the light pool also sit under the stage's own CSS dimming; the sheen belongs to the number tiles, which are never dimmed. Numbers carry the strongest visual emphasis. The secondary Display window contains no app title or branding; Full history uses ordinal draw labels. Flex wrapping centers incomplete rows and adapts to the available canvas width and selected display scale.
 
 ## Readability and motion
 
 Controller text can be reduced to 90% or enlarged to 150% in 10% steps. The percentage control returns it to 100%, and the preference is saved locally. Text scaling covers labels, controls, history, and dialogs. It does not change number sizing in the controller preview or secondary display.
+
+Informative text is at least 11 px at 100% controller text: the controller's smallest text-size token is 11 px, and no stylesheet sets a smaller pixel size (a unit test checks both). Hierarchy among small text comes from color, weight, case and letter spacing rather than from sizes below 11 px. The welcome screen's small copy and the display's Full history draw state ("Drawing") are 11 px as well. Informative text meets WCAG AA contrast (4.5:1, or 3:1 for large text) against its background, including where it sits over the stage: measured from screenshots with the sculpture lit behind it, the preview's caption stays above 5:1.
 
 The audience display has a separate 50–200% scale control. Both display views wrap numbers and allow vertical scrolling, with custom scrollbars from the palette.
 

@@ -32,6 +32,7 @@ WhizReveal has one Rust-owned native session and two React window roles. The con
 | `src/hooks/useControllerTextSize.ts` | Local text-size preference and persistence |
 | `src/lib/bridge.ts` | Tauri invoke/events adapter and browser preview transport |
 | `src/lib/controller-text-size.ts` | Text-size bounds, stepping, and stored-value normalization |
+| `src/lib/color-contrast.ts` | WCAG contrast arithmetic, the palette, and the derived muted text tone (`--color-muted-text`) |
 | `src/lib/types.ts` | Shared TypeScript snapshot shape |
 | `src/lib/preview-model.ts` | Browser-only sampling and pure session transitions |
 | `src-tauri/src/lib.rs` | Native commands, serialized mutations, event publication, window lifecycle |
@@ -133,7 +134,7 @@ The interface is styled with plain CSS; Vite bundles and minifies it into one st
 
 `main.tsx` imports `App` before its own stylesheets, and modules evaluate their imports first, so the component stylesheets precede `styles.css` in development and in the built CSS alike. A component stylesheet that adjusts a class from `styles.css`, such as `.secondary-button`, therefore needs a more specific selector; `controller-typography.css` scopes its rules under `.controller-shell` for this reason. Within `styles.css`, variants follow the rule they refine (`.launch-button` and `.sound-button` after `.secondary-button`). `reset.css` keeps only those rules of Tailwind's preflight that reach elements the app renders, inside `@layer base`, so any app rule overrides it.
 
-Controller text sizes come from tokens declared on `.controller-shell`: `--controller-text-2xs` to `--controller-text-lg` (9 to 14 px) times `--controller-text-scale`. Most are assigned in `controller-typography.css`; a few stay with their rule in `styles.css`: `.duration-select` and `.stage-welcome p` scale their own 13 and 12 px, and some text keeps a fixed size that does not follow the text-size preference, such as the stage heading (`.stage-welcome h1`), the preview baseline's caption, the history view's draw state and the error toast. The display sizes numbers from its own variables, set by `RevealCanvas` (`--tile-height`, `--number-font`, `--grid-*`, `--display-scale`).
+Controller text sizes come from tokens declared on `.controller-shell`: `--controller-text-sm` to `--controller-text-lg` (11 to 14 px) times `--controller-text-scale`; 11 px is the minimum for informative text, so there is no smaller token. Most are assigned in `controller-typography.css`; a few stay with their rule in `styles.css`: `.duration-select` and `.stage-welcome p` scale their own 13 and 12 px, and some text keeps a fixed size that does not follow the text-size preference, such as the stage heading (`.stage-welcome h1`), the history view's draw state (11 px) and the error toast. Informative secondary text takes `--color-muted-text`, declared on `:root` in `styles.css` and used wherever such text is styled; `src/lib/color-contrast.ts` derives the same value from the palette, and its tests check the stylesheet's declaration, its contrast on Canvas and Surface, the 11 px token minimum, and that no stylesheet sets a pixel font size below 11 px. The display sizes numbers from its own variables, set by `RevealCanvas` (`--tile-height`, `--number-font`, `--grid-*`, `--display-scale`).
 
 | Breakpoint | Used by | Change |
 | --- | --- | --- |

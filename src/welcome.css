@@ -8,11 +8,11 @@
 .welcome-brand { display: flex; align-items: center; gap: 13px; }
 .welcome-brand > svg { width: 38px; height: 38px; fill: none; stroke: #E7EEF5; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .welcome-brand span { display: block; font-size: 20px; letter-spacing: -0.05em; }
-.welcome-brand small { display: block; margin-top: 5px; color: #5D6F82; font-size: 10px; letter-spacing: 0.025em; }
-.welcome-top-note { color: #5D6F82; font-size: 11px; letter-spacing: 0.02em; }
+.welcome-brand small { display: block; margin-top: 5px; color: var(--color-muted-text); font-size: 11px; letter-spacing: 0.025em; }
+.welcome-top-note { color: var(--color-muted-text); font-size: 11px; letter-spacing: 0.02em; }
 .welcome-layout { flex: 1; display: grid; grid-template-columns: 1.03fr 1fr; align-items: center; gap: 20px; width: 100%; padding: 54px clamp(26px, 5vw, 84px) 72px; pointer-events: none; }
 .welcome-copy { position: relative; max-width: 690px; }
-.welcome-eyebrow { display: flex; align-items: center; gap: 9px; margin: 0 0 25px; font-size: 11px; color: #5D6F82; letter-spacing: 0.035em; }
+.welcome-eyebrow { display: flex; align-items: center; gap: 9px; margin: 0 0 25px; font-size: 11px; color: var(--color-muted-text); letter-spacing: 0.035em; }
 .welcome-eyebrow > span { width: 5px; height: 5px; border-radius: 50%; background: #5D6F82; }
 .welcome-copy h1 { font-size: clamp(45px, 5.1vw, 86px); font-weight: 400; letter-spacing: -0.068em; line-height: 1.035; margin: 0; }
 .welcome-description { margin: 25px 0 35px; max-width: 320px; color: #E7EEF5; opacity: 0.68; font-size: 15px; line-height: 1.6; }
@@ -26,8 +26,8 @@
 .welcome-enter-sound:active { transform: translateY(0); }
 .welcome-enter-silent { padding: 12px 0; border: 0; background: none; color: #E7EEF5; }
 .welcome-enter-silent > svg { color: #5D6F82; }
-.welcome-enter-silent:hover { color: #5D6F82; }
-.welcome-skip-preference { position: relative; display: flex; align-items: center; gap: 9px; width: fit-content; margin-top: 24px; padding: 4px 0; font-size: 11px; color: #5D6F82; cursor: pointer; }
+.welcome-enter-silent:hover { color: var(--color-muted-text); }
+.welcome-skip-preference { position: relative; display: flex; align-items: center; gap: 9px; width: fit-content; margin-top: 24px; padding: 4px 0; font-size: 11px; color: var(--color-muted-text); cursor: pointer; }
 .welcome-skip-preference input { position: absolute; width: 18px; height: 18px; left: 0; top: 50%; transform: translateY(-50%); margin: 0; opacity: 0; }
 .welcome-checkbox { display: flex; align-items: center; justify-content: center; width: 16px; height: 16px; flex: 0 0 16px; background: #0B0D10; border: 1px solid #5D6F82; border-radius: 4px; }
 .welcome-checkbox svg { width: 13px; height: 13px; fill: none; stroke: #0B0D10; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; visibility: hidden; }
@@ -35,7 +35,7 @@
 .welcome-skip-preference input:checked + .welcome-checkbox svg { visibility: visible; }
 .welcome-skip-preference input:focus-visible + .welcome-checkbox { outline: 2px solid #E7EEF5; outline-offset: 4px; }
 .welcome-skip-preference:hover { color: #E7EEF5; }
-.welcome-footer { display: flex; justify-content: space-between; align-items: center; gap: 20px; min-height: 83px; padding: 18px clamp(26px, 5vw, 84px) 28px; color: #5D6F82; font-size: 11px; pointer-events: none; }
+.welcome-footer { display: flex; justify-content: space-between; align-items: center; gap: 20px; min-height: 83px; padding: 18px clamp(26px, 5vw, 84px) 28px; color: var(--color-muted-text); font-size: 11px; pointer-events: none; }
 .welcome-drag-hint { display: flex; align-items: center; gap: 10px; }
 .welcome-drag-hint > span { color: #E7EEF5; font-size: 18px; }
 .welcome-footer-note { letter-spacing: 0.025em; }

@@ -45,15 +45,18 @@ The Tauri command starts Vite and opens **WhizReveal - Controller**. The initial
 
 On the display, **Escape** exits fullscreen and **F11** toggles fullscreen. A fullscreen control becomes visible when hovering or focusing the top-right corner. Use **Alt+F4** to close the focused native window. Closing the controller also closes its display.
 
-The display canvas has no app branding or main title. Full history groups results under ordinal labels such as **1st Draw** and **2nd Draw**. Both views center every row, including the final incomplete row. The interface uses these five design colors:
+The display canvas has no app branding or main title. Full history groups results under ordinal labels such as **1st Draw** and **2nd Draw**. Both views center every row, including the final incomplete row. The interface uses these five design colors, plus one text-only derivative:
 
 | Role | Color |
 | --- | --- |
 | Background | `#0B0D10` |
 | Panels | `#171C22` |
 | Borders | `#2A333D` |
-| Muted text and accents | `#5D6F82` |
+| Accents, icons, decorative and disabled text | `#5D6F82` |
 | Primary text and highlights | `#E7EEF5` |
+| Secondary text (derived from the two above, text only) | `#808F9F` |
+
+The secondary text tone exists for contrast: `#5D6F82` is below the WCAG AA 4.5:1 for text on the dark backgrounds, while `#808F9F` reaches about 5.2:1 on panels and 5.9:1 on the background. Informative text is at least 11 px at 100% controller text. See [color and hierarchy](docs/design.md#color-and-hierarchy).
 
 The controller pairs quiet controls with an interactive 3D sculpture inspired by [Lusion](https://lusion.co/). The sculpture recedes when results are present. It is rendered locally with Three.js, respects reduced motion, pauses when offscreen, and has a static fallback when WebGL is unavailable. Compact utility actions use uppercase; labels and guide text use sentence case. Scrollbars use the same palette. See the [design notes](docs/design.md).
 
@@ -127,7 +130,7 @@ npm run build
 cargo test --manifest-path src-tauri/Cargo.toml
 ```
 
-JavaScript tests exercise preview sampling, constraints, revision ordering, synchronization, and controller text-size preference normalization. Rust tests exercise native drawing, validation, session persistence, recovery, and file locking. These checks do not replace native UI testing on the intended presentation monitors.
+JavaScript tests exercise preview sampling, constraints, revision ordering, synchronization, controller text-size preference normalization, and the palette's text contrast and minimum text sizes. Rust tests exercise native drawing, validation, session persistence, recovery, and file locking. These checks do not replace native UI testing on the intended presentation monitors.
 
 See [the architecture notes](docs/architecture.md) for the project layout, the IPC contract, and how the stylesheets are organized.
 

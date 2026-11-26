@@ -33,7 +33,7 @@
 .manual-guide-dialog[open] { animation: manual-guide-appear 180ms ease-out; }
 .manual-guide-frame { display: flex; flex-direction: column; min-height: 0; }
 .manual-guide-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; padding: 30px 32px 25px; flex-shrink: 0; }
-.manual-guide-eyebrow { margin: 0 0 18px; color: #5D6F82; font-size: 0.88em; font-weight: 500; }
+.manual-guide-eyebrow { margin: 0 0 18px; color: var(--color-muted-text); font-size: 0.88em; font-weight: 500; }
 .manual-guide-header h2 { margin: 0; font-size: 2.4em; line-height: 1.12; letter-spacing: -0.045em; font-weight: 500; }
 .manual-guide-subtitle { color: #E7EEF5; opacity: 0.72; margin: 11px 0 0; font-size: 0.97em; line-height: 1.7; }
 .manual-guide-close { flex: 0 0 auto; display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 1px solid #2A333D; border-radius: 50%; color: #E7EEF5; background: #171C22; }
@@ -42,7 +42,7 @@
 .manual-guide-language-option { display: flex; flex-direction: column; align-items: stretch; justify-content: space-between; gap: 32px; padding: 22px; border: 1px solid #2A333D; border-radius: 12px; color: #E7EEF5; background: #0B0D10; text-align: left; }
 .manual-guide-language-option:hover { background: #2A333D; border-color: #5D6F82; }
 .manual-guide-language-option strong { display: block; font-size: 1.3em; font-weight: 500; line-height: 1.35; }
-.manual-guide-language-option span > span { display: block; margin-top: 9px; font-size: 0.87em; color: #5D6F82; line-height: 1.5; }
+.manual-guide-language-option span > span { display: block; margin-top: 9px; font-size: 0.87em; color: var(--color-muted-text); line-height: 1.5; }
 .manual-guide-language-option:hover span > span { color: #E7EEF5; }
 .manual-guide-language-option > svg { align-self: flex-end; }
 .manual-guide-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 0 32px 17px; border-bottom: 1px solid #2A333D; flex-shrink: 0; }
@@ -51,7 +51,7 @@
 .manual-guide-nav button[aria-current="page"] { background: #E7EEF5; color: #0B0D10; }
 .manual-guide-nav button:hover:not([aria-current="page"]) { background: #2A333D; }
 .manual-guide-language { display: inline-flex; align-items: center; gap: 6px; padding: 8px 0; border: 0; background: #171C22; color: #E7EEF5; font-size: 0.85em; }
-.manual-guide-language:hover { color: #5D6F82; }
+.manual-guide-language:hover { color: var(--color-muted-text); }
 .manual-guide-content { flex-shrink: 0; padding: 28px 32px 32px; scrollbar-width: thin; scrollbar-color: #5D6F82 #171C22; }
 .manual-guide-content::-webkit-scrollbar, .manual-guide-languages::-webkit-scrollbar { width: 5px; }
 .manual-guide-content::-webkit-scrollbar-track, .manual-guide-languages::-webkit-scrollbar-track { background: #171C22; }
@@ -67,9 +67,9 @@
 .manual-guide-keys { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
 .manual-guide-keys kbd { border: 1px solid #5D6F82; border-radius: 5px; background: #0B0D10; padding: 4px 9px; min-width: 35px; text-align: center; font-size: 0.86em; }
 .manual-guide-note { margin-top: 26px; padding: 16px 18px; border-left: 2px solid #5D6F82; border-radius: 0 8px 8px 0; background: #0B0D10; line-height: 1.8; font-size: 0.94em; }
-.manual-guide-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 17px 32px; border-top: 1px solid #2A333D; color: #5D6F82; font-size: 0.82em; flex-shrink: 0; }
+.manual-guide-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 17px 32px; border-top: 1px solid #2A333D; color: var(--color-muted-text); font-size: 0.85em; flex-shrink: 0; }
 .manual-guide-footer button { display: inline-flex; align-items: center; gap: 8px; color: #E7EEF5; border: 0; padding: 2px; background: #171C22; font-size: inherit; }
-.manual-guide-footer kbd { border: 1px solid #2A333D; border-radius: 4px; padding: 3px 5px; color: #5D6F82; }
+.manual-guide-footer kbd { border: 1px solid #2A333D; border-radius: 4px; padding: 3px 5px; color: var(--color-muted-text); }
 .manual-guide-dialog button:focus-visible, .manual-guide-trigger:focus-visible { outline: 2px solid #E7EEF5; outline-offset: 3px; }
 @keyframes manual-guide-appear { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 @media (max-width: 640px) {

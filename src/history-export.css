@@ -3,7 +3,7 @@
 .controller-shell .history-export-button { width: 100%; min-height: 40px; padding: 10px 14px; gap: 8px; }
 .history-export-button:hover:not(:disabled) { border-color: #5D6F82; }
 .history-export-button:focus-visible { outline: 2px solid #E7EEF5; outline-offset: 3px; }
-.history-export-status { color: #5D6F82; font-size: var(--controller-text-xs); line-height: 1.6; overflow-wrap: anywhere; }
+.history-export-status { color: var(--color-muted-text); font-size: var(--controller-text-sm); line-height: 1.6; overflow-wrap: anywhere; }
 .history-export-status:not(:empty) { margin-top: 9px; }
 .history-export-status[role="alert"] { color: #E7EEF5; }
 .history-export-spinner { animation: history-export-spin 1s linear infinite; }
