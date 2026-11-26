@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowRight, Volume2, VolumeX } from 'lucide-react';
 import { ImmersiveStage } from './ImmersiveStage';
@@ -24,20 +24,25 @@ export function WelcomeScreen({ onBegin, onComplete }: WelcomeScreenProps) {
     onComplete(skipNextTime);
   }
 
+  // The keyboard listener subscribes once and always calls the latest begin(), so it sees the
+  // current checkbox and callbacks without re-subscribing whenever either changes.
+  const latestBegin = useRef(begin);
+  useLayoutEffect(() => { latestBegin.current = begin; });
+
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (started.current) return;
       if (event.key === 'Enter' && !(event.target as HTMLElement)?.closest('input, button')) {
         event.preventDefault();
-        begin(true);
+        latestBegin.current(true);
       } else if (event.key === 'Escape') {
         event.preventDefault();
-        begin(false);
+        latestBegin.current(false);
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [skipNextTime]);
+  }, []);
 
   return (
     <main className="welcome-screen" aria-labelledby="welcome-title">

@@ -26,6 +26,7 @@ jobs:
           workspaces: src-tauri -> target
           cache-on-failure: true
       - run: npm ci
+      - run: npm run lint
       - run: npm test
       - run: cargo test --manifest-path src-tauri/Cargo.toml
       - run: npm run desktop:build

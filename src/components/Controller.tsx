@@ -121,6 +121,7 @@ function HistorySidebar({ snapshot, busy }: { snapshot: Snapshot; busy: boolean 
 export function Controller({ snapshot, actions, busy, displayOpen, displayBusy, onShowWelcome }: { snapshot: Snapshot; actions: Actions; busy: boolean; displayOpen: boolean; displayBusy: boolean; onShowWelcome: () => void }) {
   const textSize = useControllerTextSize();
   const sound = useDrawSound(snapshot);
+  const { click: playClick } = sound;
   const [showReset, setShowReset] = useState(false);
   const [dirty, setDirty] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -137,12 +138,12 @@ export function Controller({ snapshot, actions, busy, displayOpen, displayBusy, 
     function onKey(event: KeyboardEvent) {
       const target = event.target as HTMLElement;
       if (event.key === 'Enter' && !event.repeat && !showReset && !document.querySelector('dialog[open]') && !disabled && !target.closest('input, button, dialog, select, textarea, [role="switch"]')) {
-        event.preventDefault(); sound.click(); void actions.draw();
+        event.preventDefault(); playClick(); void actions.draw();
       }
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [actions, disabled, showReset, sound.click]);
+  }, [actions, disabled, showReset, playClick]);
   useEffect(() => { if (showReset) dialogRef.current?.showModal(); else dialogRef.current?.close(); }, [showReset]);
 
   return (

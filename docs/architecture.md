@@ -161,7 +161,7 @@ Preview randomness uses `crypto.getRandomValues` with rejection sampling to avoi
 
 ## Validation scope
 
-Run the commands in the [README](../README.md#checks) for frontend type checks, preview unit tests, production frontend compilation, and native Rust tests. For release acceptance, also open the built Windows app and exercise the full controller/display flow, mixed-DPI monitor placement, fullscreen shortcuts, session restoration, pool exhaustion, and large scrollable draws. Build commands and expected output paths are instructions, not a record that a particular release has passed those checks.
+Run the commands in the [README](../README.md#checks) for frontend type checks, lint (`eslint.config.js`, including React's hook rules), preview unit tests, production frontend compilation, and native Rust tests. For release acceptance, also open the built Windows app and exercise the full controller/display flow, mixed-DPI monitor placement, fullscreen shortcuts, session restoration, pool exhaustion, and large scrollable draws. Build commands and expected output paths are instructions, not a record that a particular release has passed those checks.
 
 ## Display toggle lifecycle
 

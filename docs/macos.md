@@ -12,7 +12,7 @@ rustup target add aarch64-apple-darwin x86_64-apple-darwin
 npm run tauri -- build --target universal-apple-darwin --bundles app,dmg
 ```
 
-Tauri automatically merges `src-tauri/tauri.macos.conf.json`. The macOS universal build GitHub Actions workflow runs frontend and Rust tests, builds the DMG and app, verifies both binary architectures and the ad-hoc signature, and uploads artifacts with SHA-256 checksums.
+Tauri automatically merges `src-tauri/tauri.macos.conf.json`. The macOS universal build GitHub Actions workflow runs the frontend lint, frontend and Rust tests, builds the DMG and app, verifies both binary architectures and the ad-hoc signature, and uploads artifacts with SHA-256 checksums.
 
 Open the DMG and drag WhizReveal to Applications. Aeonik is embedded in the application and works without installing fonts system-wide. This macOS package does not register fonts in Font Book.
 

@@ -125,10 +125,13 @@ npm run preview
 
 ```powershell
 npm run typecheck
+npm run lint
 npm test
 npm run build
 cargo test --manifest-path src-tauri/Cargo.toml
 ```
+
+`npm run lint` runs ESLint (`eslint.config.js`): the JavaScript and typescript-eslint recommended rules, React's rules of hooks and exhaustive effect dependencies as errors, and a Fast Refresh export check as a warning. The Windows and macOS workflows run it before tests and packaging.
 
 JavaScript tests exercise preview sampling, constraints, revision ordering, synchronization, controller text-size preference normalization, and the palette's text contrast and minimum text sizes. Rust tests exercise native drawing, validation, session persistence, recovery, and file locking. These checks do not replace native UI testing on the intended presentation monitors.
 

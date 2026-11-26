@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { getCurrentWindow, LogicalSize } from '@tauri-apps/api/window';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Maximize, Minimize } from 'lucide-react';
@@ -24,7 +24,9 @@ export function App() {
     setShowWelcome(false);
   }
 
-  async function setPresentationFullscreen(value: boolean) {
+  // Both close over only state setters and module-level values, so they stay stable and the
+  // keyboard effect below re-subscribes only when the fullscreen state itself changes.
+  const setPresentationFullscreen = useCallback(async (value: boolean) => {
     try {
       if (isNative) {
         const display = getCurrentWindow();
@@ -36,14 +38,14 @@ export function App() {
       else if (document.fullscreenElement) await document.exitFullscreen();
       setFullscreen(value);
     } catch (cause) { setWindowError(String(cause)); }
-  }
+  }, []);
 
-  async function toggleFullscreen() {
+  const toggleFullscreen = useCallback(async () => {
     try {
       const current = isNative ? await getCurrentWindow().isFullscreen() : !!document.fullscreenElement;
       await setPresentationFullscreen(!current);
     } catch (cause) { setWindowError(String(cause)); }
-  }
+  }, [setPresentationFullscreen]);
 
   useEffect(() => {
     if (!isNative || !isDisplay) return;
@@ -72,7 +74,7 @@ export function App() {
     document.addEventListener('fullscreenchange', change);
     window.addEventListener('keydown', onKey);
     return () => { document.removeEventListener('fullscreenchange', change); window.removeEventListener('keydown', onKey); };
-  }, [fullscreen]);
+  }, [fullscreen, setPresentationFullscreen, toggleFullscreen]);
 
   return <>
     <AnimatePresence mode="wait">
