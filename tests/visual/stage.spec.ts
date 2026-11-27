@@ -44,11 +44,14 @@ test('the WebGL stage paints and hides the CSS fallback', async ({ page }) => {
 });
 
 test('both stages are drawing only while a draw runs', async ({ page }) => {
+  // Two SwiftShader pages share a small CI runner's CPU; give the whole sequence room.
+  test.setTimeout(120_000);
   await openController(page);
   const display = await openDisplay(page);
-  // Three seconds, so each window is seen drawing well before its reveal.
-  await page.locator('#draw-duration').selectOption('3000');
-  await expect(page.locator('#draw-duration')).toHaveValue('3000');
+  // Ten seconds: on a 2-vCPU runner the display's main thread can be starved for seconds,
+  // and a 3 s draw could start and finish inside one batch there, never rendering as drawing.
+  await page.locator('#draw-duration').selectOption('10000');
+  await expect(page.locator('#draw-duration')).toHaveValue('10000');
   await expect(page.locator('.cinematic-stage.stage-drawing')).toHaveCount(0);
 
   await page.locator('.draw-button').click();
@@ -56,8 +59,9 @@ test('both stages are drawing only while a draw runs', async ({ page }) => {
   await expect(display.locator('.cinematic-stage.stage-drawing')).toHaveCount(1);
   await expect(page.locator('.draw-button')).toHaveText('Drawing');
 
-  await expect(page.locator('.cinematic-stage.stage-drawing')).toHaveCount(0);
-  await expect(display.locator('.cinematic-stage.stage-drawing')).toHaveCount(0);
+  // The draw lasts ten seconds, longer than the default expect timeout.
+  await expect(page.locator('.cinematic-stage.stage-drawing')).toHaveCount(0, { timeout: 30_000 });
+  await expect(display.locator('.cinematic-stage.stage-drawing')).toHaveCount(0, { timeout: 30_000 });
   await expect(page.locator('.cinematic-stage')).toHaveClass(/stage-occupied/);
   await expect(page.locator('.count-badge')).toHaveText('1');
   await expectNumbers(display.locator('.presentation-canvas'), FIRST_DRAW);
