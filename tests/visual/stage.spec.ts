@@ -1,8 +1,6 @@
 import type { Page } from '@playwright/test';
 import { expect, expectNumbers, FIRST_DRAW, openController, openDisplay, test } from './fixtures';
 
-// Behaviour, not pixels: with decorative motion on, the stage animates continuously.
-test.use({ reducedMotion: 'no-preference' });
 
 /**
  * Copies the stage's WebGL canvas into a 2D canvas over a few animation frames and
@@ -32,6 +30,10 @@ function paintedShare(page: Page): Promise<number> {
   });
 }
 
+test.describe('with decorative motion on', () => {
+  // Behaviour, not pixels: with decorative motion on, the stage animates continuously.
+  test.use({ reducedMotion: 'no-preference' });
+
 test('the WebGL stage paints and hides the CSS fallback', async ({ page }) => {
   await openController(page);
   await expect(page.locator('.stage-sculpture')).toHaveClass(/sculpture-ready/);
@@ -42,6 +44,11 @@ test('the WebGL stage paints and hides the CSS fallback', async ({ page }) => {
   const share = await paintedShare(page);
   expect(share).toBeGreaterThan(0.05);
 });
+});
+
+// The suite's default reduced motion: both stages render only on demand. With motion on, two
+// pages rendering WebGL on the CPU starved a 2-vCPU CI runner so badly that a 10 s draw could
+// pass unseen. The stage-drawing class toggles the same way either way.
 
 test('both stages are drawing only while a draw runs', async ({ page }) => {
   // Two SwiftShader pages share a small CI runner's CPU; give the whole sequence room.
