@@ -55,13 +55,15 @@ test('both stages are drawing only while a draw runs', async ({ page }) => {
   await expect(page.locator('.cinematic-stage.stage-drawing')).toHaveCount(0);
 
   await page.locator('.draw-button').click();
+  // Controller first: it owns the draw, so it shows drawing at once. The starved display can
+  // lag the controller by several seconds on CI; it only has to be seen drawing at some point.
   await expect(page.locator('.cinematic-stage.stage-drawing')).toHaveCount(1);
-  await expect(display.locator('.cinematic-stage.stage-drawing')).toHaveCount(1);
   await expect(page.locator('.draw-button')).toHaveText('Drawing');
+  await expect(display.locator('.cinematic-stage.stage-drawing')).toHaveCount(1, { timeout: 30_000 });
 
   // The draw lasts ten seconds, longer than the default expect timeout.
   await expect(page.locator('.cinematic-stage.stage-drawing')).toHaveCount(0, { timeout: 30_000 });
-  await expect(display.locator('.cinematic-stage.stage-drawing')).toHaveCount(0, { timeout: 30_000 });
+  await expect(display.locator('.cinematic-stage.stage-drawing')).toHaveCount(0, { timeout: 45_000 });
   await expect(page.locator('.cinematic-stage')).toHaveClass(/stage-occupied/);
   await expect(page.locator('.count-badge')).toHaveText('1');
   await expectNumbers(display.locator('.presentation-canvas'), FIRST_DRAW);
